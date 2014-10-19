@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal" android:layout_width="match_parent"
+    android:layout_height="72dp"
+    android:weightSum="1"
+    android:id="@+id/list_item_container">
+
+
+    <ImageView
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:id="@+id/side_colour"
+        android:background="#1ca8f4"
+        android:layout_weight="0.025" />
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:paddingLeft="16dp"
+        android:gravity="center_vertical"
+        android:layout_weight="0.675">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Further Maths"
+            android:id="@+id/list_item_subject_textview"
+            android:typeface="sans"
+            android:textSize="20sp"
+            android:textColor="#ff7e807d" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="8:30am"
+            android:id="@+id/list_item_time_textview"
+            android:typeface="sans"
+            android:textColor="#ff7e807d" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="0.3"
+        android:gravity="center_vertical|center_horizontal"
+        android:layout_marginRight="10dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Pamela Hearsum"
+            android:id="@+id/list_item_teacher_textview"
+            android:textSize="12sp"
+            android:layout_gravity="center_horizontal"
+            android:gravity="center_horizontal"
+            android:textColor="#ff7e807d" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="VY209"
+            android:id="@+id/list_item_room_textview"
+            android:textSize="12sp"
+            android:layout_gravity="center_horizontal"
+            android:textColor="#ff7e807d" />
+    </LinearLayout>
+</LinearLayout>
+
+
+
