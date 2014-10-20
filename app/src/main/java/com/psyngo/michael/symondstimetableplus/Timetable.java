@@ -1,20 +1,22 @@
 package com.psyngo.michael.symondstimetableplus;
 
 import android.app.Activity;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -38,7 +40,12 @@ public class Timetable extends ActionBarActivity
      */
     private CharSequence mTitle;
 
+    static List<Lesson> Week;
     static List<Lesson> Monday;
+    static List<Lesson> Tuesday;
+    static List<Lesson> Wednesday;
+    static List<Lesson> Thursday;
+    static List<Lesson> Friday;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,15 +71,20 @@ public class Timetable extends ActionBarActivity
 
         Elements rows = table.select("tr");
 
-        String length;
-        String subject;
-        String teacher;
-        String room;
-        String time;
+        String length = "";
+        String subject= "";
+        String teacher = "";
+        String room = "";
+        String time = "";
 
+        Week = new ArrayList<Lesson>();
         Monday = new ArrayList<Lesson>();
+        Tuesday = new ArrayList<Lesson>();
+        Wednesday = new ArrayList<Lesson>();
+        Thursday = new ArrayList<Lesson>();
+        Friday = new ArrayList<Lesson>();
 
-        for(int i = 1; i < rows.size(); i++){
+        /*for(int i = 1; i < rows.size(); i++){
             Element row = rows.get(i);
             Elements cols = row.select("td");
             Elements info = cols.get(0).select("p");
@@ -90,15 +102,85 @@ public class Timetable extends ActionBarActivity
                 room = split[0];
                 time=split[1];
 
+            }*/
+
+
+
+        int[] offsets = new int[rows.size()];
+
+        for (int i = 1; i < rows.get(0).children().size(); i++) //unless colspans are used, this should return the number of columns
+        {
+            for (int j = 1; j < rows.size(); j++) // loops through the rows of each column
+                 {
+                         Element cell = rows.get(j).child(i + offsets[j]); //get an individual cell
+
+            if (cell.hasAttr("rowspan")) //if that cell has a rowspan
+            {
+                int rowspan = Integer.parseInt(cell.attr("rowspan"));
+
+                for (int k = 1; k < rowspan; k++)
+                {
+                    offsets[j + k]--; //add offsets to rows that now have a cell "missing"
+                }
+
+                j += rowspan - 1; //add rowspan to index, to skip the "missing" cells
             }
 
-            //length = Integer.parseInt(cols.get(0).attr("rowspan"));
-            length = "1";
+            if (cell.hasClass("lesson") || cell.hasClass("activity") || cell.hasClass("tutorgroup")){
+                subject = cell.select(".title").text();
+                teacher = cell.select(".subtitle").text();
+                String[] split = cell.select(".room").text().split(" ");
+                room = split[0];
+                time = split[1];
+                length = cell.attr("rowspan");
 
-            Lesson mondayLesson = new Lesson(time, subject, teacher, room, length);
-            Log.d("myapp", subject + teacher + room + time);
-            Monday.add(mondayLesson);
 
+            }
+            else //if (cell.hasClass("blank"))//
+            {
+                subject = cell.text();
+                length = "1";
+
+                teacher = "";
+                room = "";
+                time = "";
+            }
+
+
+
+
+                    Lesson lesson = new Lesson(time, subject, teacher, room, length);
+
+                    Week.add(lesson);
+
+                 }
+
+
+
+
+
+
+        }
+        int day = 1;
+        int count = 0;
+        for (Lesson les : Week){
+            switch(day) {
+                case 1: Monday.add(les);
+                    break;
+                case 2: Tuesday.add(les);
+                    break;
+                case 3: Wednesday.add(les);
+                    break;
+                case 4: Thursday.add(les);
+                    break;
+                case 5: Friday.add(les);
+                    break;
+            }
+            count += Integer.parseInt(les.getLength());
+            if (count == 10){
+                day += 1;
+                count = 0;
+            }
 
         }
     }
@@ -204,11 +286,34 @@ public class Timetable extends ActionBarActivity
                 Bundle savedInstanceState) {
 
             View rootView = inflater.inflate(R.layout.fragment_timetable, container, false);
+            Bundle args = getArguments();
+            int dayNum = args.getInt(ARG_SECTION_NUMBER);
+            ArrayAdapter<Lesson> adapter = null;
+            TextView dayHeader = (TextView) rootView.findViewById(R.id.day_textview);
+            switch (dayNum){
+                case 1: adapter = new MyListAdapter(getActivity().getApplicationContext(), R.layout.list_item_lesson, Monday);
+                    dayHeader.setText("MONDAY");
+                    break;
+                case 2: adapter = new MyListAdapter(getActivity().getApplicationContext(), R.layout.list_item_lesson, Tuesday);
+                    dayHeader.setText("TUESDAY");
+                    break;
+                case 3: adapter = new MyListAdapter(getActivity().getApplicationContext(), R.layout.list_item_lesson, Wednesday);
+                    dayHeader.setText("WEDNESDAY");
+                    break;
+                case 4: adapter = new MyListAdapter(getActivity().getApplicationContext(), R.layout.list_item_lesson, Thursday);
+                    dayHeader.setText("THURSDAY");
+                    break;
+                case 5: adapter = new MyListAdapter(getActivity().getApplicationContext(), R.layout.list_item_lesson, Friday);
+                    dayHeader.setText("FRIDAY");
+                    break;
 
-            ArrayAdapter<Lesson> adapter = new MyListAdapter(getActivity().getApplicationContext(), R.layout.list_item_lesson, Monday);
+            }
+
+
             ListView list = (ListView) rootView.findViewById(R.id.timetable_listview);
             list.setAdapter(adapter);
-
+            LinearLayout qv = (LinearLayout) rootView.findViewById(R.id.Quick_view);
+            qv.setBackgroundColor(Color .rgb(28,168,244));
             return rootView;
         }
 

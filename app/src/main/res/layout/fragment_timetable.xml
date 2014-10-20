@@ -4,50 +4,64 @@
     android:layout_height="match_parent"
 
     android:orientation="vertical"
-    tools:context="com.psyngo.michael.symondstimetableplus.Timetable.TimetableFragment">
+    tools:context="com.psyngo.michael.symondstimetableplus.Timetable.TimetableFragment"
+    android:id="@+id/topview">
 
     <LinearLayout
-
-        android:orientation="horizontal"
+        android:orientation="vertical"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:paddingTop="16dp"
         android:background="#1ca8f4"
-        android:layout_weight="0">
+        android:id="@+id/Quick_view">
 
-        <LinearLayout
-            android:orientation="vertical"
+        <TextView
             android:layout_width="wrap_content"
-            android:layout_height="fill_parent"
-            android:padding="16dp"
-            android:gravity="center_vertical">
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:text="Happening now"
+            android:id="@+id/textView2"
+            android:textColor="#ffffff"
+            android:layout_marginLeft="16dp" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceSmall"
-                android:text="Happening now"
-                android:id="@+id/textView2"
-                android:textColor="#ffffff" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="Further Maths"
+            android:id="@+id/subject_textview"
+            android:textColor="#ffffffff"
+            android:textStyle="bold"
+            android:textSize="30sp"
+            android:layout_marginLeft="16dp" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceLarge"
-                android:text="Further Maths"
-                android:id="@+id/subject_textview"
-                android:textColor="#ffffffff"
-                android:textStyle="bold"
-                android:textSize="30sp" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:text="22 Minutes left."
+            android:id="@+id/time_left_texview"
+            android:textColor="#FFFFFF"
+            android:paddingBottom="5dp"
+            android:layout_marginLeft="16dp" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceMedium"
-                android:text="22 Minutes left."
-                android:id="@+id/time_left_texview"
-                android:textColor="#FFFFFF" />
+        <ImageView
+            android:layout_width="fill_parent"
+            android:layout_height="1dp"
+            android:id="@+id/imageView"
+            android:background="#ffd8d9d9" />
 
-        </LinearLayout>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="WEDNESDAY"
+            android:id="@+id/day_textview"
+            android:textColor="#ffffffff"
+            android:textStyle="bold"
+            android:singleLine="false"
+            android:paddingTop="5dp"
+            android:layout_gravity="center_horizontal" />
 
     </LinearLayout>
 
