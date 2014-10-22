@@ -8,6 +8,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -23,7 +24,11 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 
@@ -47,6 +52,8 @@ public class Timetable extends ActionBarActivity
     static List<Lesson> Thursday;
     static List<Lesson> Friday;
 
+    TextView _tvTime;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -59,11 +66,117 @@ public class Timetable extends ActionBarActivity
                 getSupportFragmentManager().findFragmentById(R.id.navigation_drawer);
         mTitle = getTitle();
 
+        Thread myThread = null;
+
+        Runnable myRunnableThread = new CountDownRunner();
+        myThread= new Thread(myRunnableThread);
+        myThread.start();
+
+
         // Set up the drawer.
         mNavigationDrawerFragment.setUp(
                 R.id.navigation_drawer,
                 (DrawerLayout) findViewById(R.id.drawer_layout));
     }
+
+
+
+    public void doWork() {
+        runOnUiThread(new Runnable() {
+            public void run() {
+                try{
+                    TextView txtCurrentTime= (TextView)findViewById(R.id.time_left_texview);
+
+
+
+                    Calendar calendar = Calendar.getInstance();
+                    int dayNum = calendar.get(Calendar.DAY_OF_WEEK) - 1;
+
+                    List<Lesson> todaysLessons = null;
+
+                    switch (dayNum){
+
+                        case 1: todaysLessons = Monday;
+                            break;
+                        case 2: todaysLessons = Tuesday;
+                            break;
+                        case 3: todaysLessons = Wednesday;
+                            break;
+                        case 4: todaysLessons = Thursday;
+                            break;
+                        case 5: todaysLessons = Friday;
+                            break;
+
+
+                    }
+
+
+
+
+
+                    for (Lesson les: todaysLessons){
+                        Calendar cal = Calendar.getInstance();
+                        cal.setTime(new Date());
+                        cal.set(Calendar.DAY_OF_MONTH, les.getEndTime().get(Calendar.DAY_OF_MONTH));
+                        cal.set(Calendar.MONTH, les.getEndTime().get(Calendar.MONTH));
+                        cal.set(Calendar.YEAR, les.getEndTime().get(Calendar.YEAR));
+                        cal.add(Calendar.HOUR_OF_DAY, -12);
+                        Date dt = cal.getTime();
+                        long currenttime = dt.getTime();
+                        if (currenttime > les.getStartTime().getTime().getTime() && currenttime < les.getEndTime().getTime().getTime()){
+                           TextView quickviewTitle = (TextView) findViewById(R.id.subject_textview);
+                            TextView timelefttextview = (TextView) findViewById(R.id.time_left_texview);
+                            Log.d("myapp", les.getEndTime().getTime().toString());
+                            Log.d("myapp", cal.getTime().toString());
+
+                            String timeleft = String.valueOf(Math.abs(les.getEndTime().getTimeInMillis() - cal.getTimeInMillis())/60000);
+                            timelefttextview.setText(timeleft + " Minutes left");
+                            quickviewTitle.setText(les.getLessonName());
+                            TextView prefixtextview = (TextView) findViewById(R.id.prefix_textview);
+                            prefixtextview.setText("Happening now");
+                            
+                        }
+                        /*if (les.getStartTime().getTime().getTime() > currenttime){
+                            TextView quickviewTitle = (TextView) findViewById(R.id.subject_textview);
+                            TextView timelefttextview = (TextView) findViewById(R.id.time_left_texview);
+                            TextView prefixtextview = (TextView) findViewById(R.id.prefix_textview);
+                            quickviewTitle.setText(les.getLessonName());
+                            String timeleft = String.valueOf(Math.abs(les.getStartTime().getTimeInMillis() - cal.getTimeInMillis())/60000);
+                            prefixtextview.setText("Your next lesson is");
+                            timelefttextview.setText("in " + timeleft + " Minutes");
+                            break;
+
+
+
+                        }*/
+
+                    }
+
+
+
+
+
+                    ;
+                }catch (Exception e) {}
+            }
+        });
+    }
+
+    class CountDownRunner implements Runnable{
+        // @Override
+        public void run() {
+            while(!Thread.currentThread().isInterrupted()){
+                try {
+                    doWork();
+                    Thread.sleep(10000); // Pause of 1 Second
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }catch(Exception e){
+                }
+            }
+        }
+    }
+
 
     public void parseHTML(String timetableHTMLstring){
         Document doc = Jsoup.parse(timetableHTMLstring);
@@ -76,6 +189,8 @@ public class Timetable extends ActionBarActivity
         String teacher = "";
         String room = "";
         String time = "";
+        Date startTime;
+        Date endTime;
 
         Week = new ArrayList<Lesson>();
         Monday = new ArrayList<Lesson>();
@@ -83,27 +198,6 @@ public class Timetable extends ActionBarActivity
         Wednesday = new ArrayList<Lesson>();
         Thursday = new ArrayList<Lesson>();
         Friday = new ArrayList<Lesson>();
-
-        /*for(int i = 1; i < rows.size(); i++){
-            Element row = rows.get(i);
-            Elements cols = row.select("td");
-            Elements info = cols.get(0).select("p");
-            if(cols.get(0).hasClass("blank")){
-                subject = "Free Period";
-                teacher = "";
-                room = "";
-                time = "";
-
-            }
-            else {
-                subject = info.get(0).text().toString();
-                teacher = info.get(1).text().toString();
-                String[] split = info.get(2).text().toString().split(" ");
-                room = split[0];
-                time=split[1];
-
-            }*/
-
 
 
         int[] offsets = new int[rows.size()];
@@ -144,12 +238,44 @@ public class Timetable extends ActionBarActivity
                 teacher = "";
                 room = "";
                 time = "";
+
             }
 
+                     Calendar endcal =Calendar.getInstance();
+                     Calendar startcal = Calendar.getInstance();
+
+
+                     if (cell.hasClass("lesson")) {
+
+
+                         try {
+                             startcal.setTime(new SimpleDateFormat("hh:mmaa").parse(time));
+
+                             endcal.setTime(startcal.getTime());
+                             endcal.add(Calendar.MINUTE, 55 * Integer.parseInt(length));
+
+                         } catch (ParseException e) {
+                             e.printStackTrace();
+                         }
+                     }
+
+                     if (cell.hasClass("tutorgroup")) {
+
+
+                         try {
+                             startcal.setTime(new SimpleDateFormat("hh:mmaa").parse(time));
+
+                             endcal.setTime(startcal.getTime());
+                             endcal.add(Calendar.MINUTE, 30 * Integer.parseInt(length));
+
+                         } catch (ParseException e) {
+                             e.printStackTrace();
+                         }
+                     }
 
 
 
-                    Lesson lesson = new Lesson(time, subject, teacher, room, length);
+                     Lesson lesson = new Lesson(time, subject, teacher, room, length, startcal, endcal);
 
                     Week.add(lesson);
 
@@ -256,6 +382,8 @@ public class Timetable extends ActionBarActivity
          * fragment.
          */
         private static final String ARG_SECTION_NUMBER = "section_number";
+        private static boolean openCurrentDay = true;
+
 
 
         /**
@@ -278,8 +406,13 @@ public class Timetable extends ActionBarActivity
 
         @Override
         public void onCreate(Bundle savedInstanceState) {
+
             super.onCreate(savedInstanceState);
+
         }
+
+
+
 
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -287,7 +420,19 @@ public class Timetable extends ActionBarActivity
 
             View rootView = inflater.inflate(R.layout.fragment_timetable, container, false);
             Bundle args = getArguments();
-            int dayNum = args.getInt(ARG_SECTION_NUMBER);
+            int dayNum;
+            if(openCurrentDay == true){
+                Calendar calendar = Calendar.getInstance();
+                dayNum = calendar.get(Calendar.DAY_OF_WEEK) - 1;
+                if(dayNum > 5 || dayNum == 0){
+                    dayNum = 1;
+                }
+                openCurrentDay = false;
+
+            }
+            else {
+                dayNum = args.getInt(ARG_SECTION_NUMBER);
+            }
             ArrayAdapter<Lesson> adapter = null;
             TextView dayHeader = (TextView) rootView.findViewById(R.id.day_textview);
             switch (dayNum){
@@ -323,6 +468,7 @@ public class Timetable extends ActionBarActivity
             ((Timetable) activity).onSectionAttached(
                     getArguments().getInt(ARG_SECTION_NUMBER));
         }
+
 
 
     }

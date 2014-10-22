@@ -44,7 +44,10 @@ public class MyListAdapter extends ArrayAdapter<Lesson> {
 
             Lesson currentLesson = objects.get(position);
 
-            TextView subjectTextView = (TextView) itemView.findViewById(R.id.list_item_subject_textview);
+
+
+
+        TextView subjectTextView = (TextView) itemView.findViewById(R.id.list_item_subject_textview);
         TextView timeTextView = (TextView) itemView.findViewById(R.id.list_item_time_textview);
         TextView roomTextView = (TextView) itemView.findViewById(R.id.list_item_room_textview);
         TextView teacherTextView = (TextView) itemView.findViewById(R.id.list_item_teacher_textview);
@@ -107,6 +110,7 @@ public class MyListAdapter extends ArrayAdapter<Lesson> {
         }
 
         if (currentLesson.getLessonName().equals("Tutor Group")){
+            subjectTextView.setText("Tutor");
             timeTextView.setVisibility(View.GONE);
             contParams.height = 36;
         }

@@ -21,7 +21,7 @@
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceSmall"
             android:text="Happening now"
-            android:id="@+id/textView2"
+            android:id="@+id/prefix_textview"
             android:textColor="#ffffff"
             android:layout_marginLeft="16dp" />
 
