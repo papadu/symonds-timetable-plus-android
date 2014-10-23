@@ -85,7 +85,7 @@ public class Timetable extends ActionBarActivity
         runOnUiThread(new Runnable() {
             public void run() {
                 try{
-                    TextView txtCurrentTime= (TextView)findViewById(R.id.time_left_texview);
+
 
 
 
@@ -120,35 +120,53 @@ public class Timetable extends ActionBarActivity
                         cal.set(Calendar.DAY_OF_MONTH, les.getEndTime().get(Calendar.DAY_OF_MONTH));
                         cal.set(Calendar.MONTH, les.getEndTime().get(Calendar.MONTH));
                         cal.set(Calendar.YEAR, les.getEndTime().get(Calendar.YEAR));
-                        cal.add(Calendar.HOUR_OF_DAY, -12);
+                        TextView quickviewTitle = (TextView) findViewById(R.id.subject_textview);
+                        TextView timelefttextview = (TextView) findViewById(R.id.time_left_texview);
+                        TextView prefixtextview = (TextView) findViewById(R.id.prefix_textview);
+
+                        quickviewTitle.setText("No more Lessons today");
+                        prefixtextview.setText("");
+                        timelefttextview.setText("");
+
+
                         Date dt = cal.getTime();
                         long currenttime = dt.getTime();
                         if (currenttime > les.getStartTime().getTime().getTime() && currenttime < les.getEndTime().getTime().getTime()){
-                           TextView quickviewTitle = (TextView) findViewById(R.id.subject_textview);
-                            TextView timelefttextview = (TextView) findViewById(R.id.time_left_texview);
+
                             Log.d("myapp", les.getEndTime().getTime().toString());
                             Log.d("myapp", cal.getTime().toString());
 
                             String timeleft = String.valueOf(Math.abs(les.getEndTime().getTimeInMillis() - cal.getTimeInMillis())/60000);
                             timelefttextview.setText(timeleft + " Minutes left");
                             quickviewTitle.setText(les.getLessonName());
-                            TextView prefixtextview = (TextView) findViewById(R.id.prefix_textview);
+
                             prefixtextview.setText("Happening now");
-                            
+                            break;
+
                         }
-                        /*if (les.getStartTime().getTime().getTime() > currenttime){
-                            TextView quickviewTitle = (TextView) findViewById(R.id.subject_textview);
-                            TextView timelefttextview = (TextView) findViewById(R.id.time_left_texview);
-                            TextView prefixtextview = (TextView) findViewById(R.id.prefix_textview);
+                        else if (les.getLessonName().equals("Break") != true && currenttime < les.getStartTime().getTime().getTime() && les.getLessonName().equals("Study Period") != true ){
+
+
                             quickviewTitle.setText(les.getLessonName());
-                            String timeleft = String.valueOf(Math.abs(les.getStartTime().getTimeInMillis() - cal.getTimeInMillis())/60000);
+                            long timeleft = Math.abs(les.getStartTime().getTimeInMillis() - cal.getTimeInMillis())/60000;
+                            if(timeleft < 60){
+                                String timeleftminutes = String.valueOf(timeleft);
+                                timelefttextview.setText("in " + timeleftminutes + " Minutes");
+                            }
+                            else{
+                                String timeleftminutes = String.valueOf(timeleft % 60);
+                                String timelefthours = String.valueOf((timeleft-(timeleft%60))/60) + " Hours";
+                                timelefttextview.setText("in " + timelefthours + " and " + timeleftminutes + " Minutes");
+                            }
+
                             prefixtextview.setText("Your next lesson is");
-                            timelefttextview.setText("in " + timeleft + " Minutes");
+
+
                             break;
 
 
 
-                        }*/
+                        }
 
                     }
 
@@ -272,6 +290,38 @@ public class Timetable extends ActionBarActivity
                              e.printStackTrace();
                          }
                      }
+
+                     if (cell.hasClass("activity")) {
+                         if(j==7){
+                             try {
+                                 startcal.setTime(new SimpleDateFormat("hh:mmaa").parse(time));
+
+                                 endcal.setTime(startcal.getTime());
+                                 endcal.add(Calendar.MINUTE, 50 * Integer.parseInt(length));
+
+                             } catch (ParseException e) {
+                                 e.printStackTrace();
+                             }
+                         }
+                         else {
+                             try {
+                                 startcal.setTime(new SimpleDateFormat("hh:mmaa").parse(time));
+
+                                 endcal.setTime(startcal.getTime());
+                                 endcal.add(Calendar.MINUTE, 55 * Integer.parseInt(length));
+
+                             } catch (ParseException e) {
+                                 e.printStackTrace();
+                             }
+                         }
+
+
+                     }
+
+
+
+
+
 
 
 
@@ -453,7 +503,7 @@ public class Timetable extends ActionBarActivity
                     break;
 
             }
-
+            SetUpQuickView(rootView);
 
             ListView list = (ListView) rootView.findViewById(R.id.timetable_listview);
             list.setAdapter(adapter);
@@ -467,6 +517,79 @@ public class Timetable extends ActionBarActivity
             super.onAttach(activity);
             ((Timetable) activity).onSectionAttached(
                     getArguments().getInt(ARG_SECTION_NUMBER));
+        }
+
+        private void SetUpQuickView(View rootView){
+            Calendar calendar = Calendar.getInstance();
+            int dayNum = calendar.get(Calendar.DAY_OF_WEEK) - 1;
+
+            List<Lesson> todaysLessons = null;
+
+            switch (dayNum){
+
+                case 1: todaysLessons = Monday;
+                    break;
+                case 2: todaysLessons = Tuesday;
+                    break;
+                case 3: todaysLessons = Wednesday;
+                    break;
+                case 4: todaysLessons = Thursday;
+                    break;
+                case 5: todaysLessons = Friday;
+                    break;
+
+
+            }
+            for (Lesson les: todaysLessons){
+                Calendar cal = Calendar.getInstance();
+                cal.setTime(new Date());
+                cal.set(Calendar.DAY_OF_MONTH, les.getEndTime().get(Calendar.DAY_OF_MONTH));
+                cal.set(Calendar.MONTH, les.getEndTime().get(Calendar.MONTH));
+                cal.set(Calendar.YEAR, les.getEndTime().get(Calendar.YEAR));
+
+
+                Date dt = cal.getTime();
+                long currenttime = dt.getTime();
+                if (currenttime > les.getStartTime().getTime().getTime() && currenttime < les.getEndTime().getTime().getTime()){
+                    TextView quickviewTitle = (TextView) rootView.findViewById(R.id.subject_textview);
+                    TextView timelefttextview = (TextView) rootView.findViewById(R.id.time_left_texview);
+                    Log.d("myapp", les.getEndTime().getTime().toString());
+                    Log.d("myapp", cal.getTime().toString());
+
+                    String timeleft = String.valueOf(Math.abs(les.getEndTime().getTimeInMillis() - cal.getTimeInMillis())/60000);
+                    timelefttextview.setText(timeleft + " Minutes left");
+                    quickviewTitle.setText(les.getLessonName());
+                    TextView prefixtextview = (TextView) rootView.findViewById(R.id.prefix_textview);
+                    prefixtextview.setText("Happening now");
+                    break;
+
+                }
+                else if (les.getLessonName().equals("Break") != true && currenttime < les.getStartTime().getTime().getTime() && les.getLessonName().equals("Study Period") != true ){
+                    TextView quickviewTitle = (TextView) rootView.findViewById(R.id.subject_textview);
+                    TextView timelefttextview = (TextView) rootView.findViewById(R.id.time_left_texview);
+                    TextView prefixtextview = (TextView) rootView.findViewById(R.id.prefix_textview);
+                    quickviewTitle.setText(les.getLessonName());
+                    long timeleft = Math.abs(les.getStartTime().getTimeInMillis() - cal.getTimeInMillis())/60000;
+                    if(timeleft < 60){
+                        String timeleftminutes = String.valueOf(timeleft);
+                        timelefttextview.setText("in " + timeleftminutes + " Minutes");
+                    }
+                    else{
+                        String timeleftminutes = String.valueOf(timeleft % 60);
+                        String timelefthours = String.valueOf((timeleft-(timeleft%60))/60) + " Hours";
+                        timelefttextview.setText("in " + timelefthours + " and " + timeleftminutes + " Minutes");
+                    }
+
+                    prefixtextview.setText("Your next lesson is");
+
+
+                    break;
+
+
+
+                }
+
+            }
         }
 
 

@@ -74,10 +74,10 @@ public class LoginScreen extends ActionBarActivity {
         EditText usernameEdit = (EditText) findViewById(R.id.username);
         EditText passwordEdit = (EditText) findViewById(R.id.password);
 
-        //String username = usernameEdit.getText().toString();
-        //String password = passwordEdit.getText().toString();
-        String username = "mbrown14";
-        String password = "blackra1n";
+        String username = usernameEdit.getText().toString();
+        String password = passwordEdit.getText().toString();
+        //String username = "mbrown14";
+        //String password = "blackra1n";
         String ProcessLoginForm = "true";
         String signin = "Sign In";
         GetSymondsTimetable post = new GetSymondsTimetable(this);
