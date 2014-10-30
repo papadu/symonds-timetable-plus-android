@@ -10,7 +10,7 @@
 
 
     <style name="Theme.MyAppTheme.ActionBar" parent="@android:style/Widget.Holo.ActionBar">
-        <item name="android:background">#ff1ca8f4</item>
+        <item name="android:background">#33b5e5</item>
         <item name="android:titleTextStyle">@style/NoTitleText</item>
         <item name="android:subtitleTextStyle">@style/NoTitleText</item>
 

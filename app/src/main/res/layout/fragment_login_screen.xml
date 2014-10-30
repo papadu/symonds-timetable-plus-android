@@ -1,12 +1,27 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
+    android:paddingTop="0dp"
     android:paddingBottom="@dimen/activity_vertical_margin"
-    tools:context=".LoginScreen$PlaceholderFragment">
+    tools:context=".LoginScreen$PlaceholderFragment"
+    android:background="@drawable/gradient"
+    android:orientation="vertical"
+    android:gravity="center_vertical|center|center_horizontal">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Log in to your Peter Symonds account"
+        android:id="@+id/textView"
+        android:layout_above="@+id/username"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="60dp"
+        android:textSize="25sp"
+        android:gravity="center_horizontal"
+        android:textColor="#ffffff" />
 
     <EditText
         android:layout_width="wrap_content"
@@ -18,7 +33,9 @@
         android:layout_alignLeft="@+id/password"
         android:layout_alignStart="@+id/password"
         android:layout_marginBottom="25dp"
-        android:hint="e.g mbrown14" />
+        android:hint="Username"
+        android:textColor="#ffffff"
+        android:textColorHint="#ffffff" />
 
     <EditText
         android:layout_width="wrap_content"
@@ -28,16 +45,10 @@
         android:id="@+id/password"
         android:layout_centerVertical="true"
         android:layout_centerHorizontal="true"
-        android:hint="password" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Enter your Symonds username and password below"
-        android:id="@+id/textView"
-        android:layout_above="@+id/username"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="62dp" />
+        android:hint="Password"
+        android:textColor="#ffffff"
+        android:textColorHint="#ffffff"
+        android:typeface="normal" />
 
     <Button
         android:layout_width="wrap_content"
@@ -51,4 +62,4 @@
 
 
 
-</RelativeLayout>
+</LinearLayout>

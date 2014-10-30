@@ -10,11 +10,14 @@ public class Lesson {
     private String lessonName;
     private String lessonTeacher;
     private String lessonRoom;
-    private String length;
+    private int length;
     private Calendar startTime;
     private Calendar endTime;
+    private String nextTime;
+    private String whoElseFree;
+    private int backgroundColor;
 
-    public Lesson(String time, String subjectName, String teacher, String room, String length, Calendar startTime, Calendar endTime){
+    public Lesson(String time, String subjectName, String teacher, String room, int length, String nextTime, String whoElseFree, Calendar startTime, Calendar endTime, int backgroundColor){
         this.lessonTime = time;
         this.lessonName = subjectName;
         this.lessonTeacher = teacher;
@@ -22,6 +25,9 @@ public class Lesson {
         this.length = length;
         this.startTime = startTime;
         this.endTime = endTime;
+        this.nextTime = nextTime;
+        this.whoElseFree = whoElseFree;
+        this.backgroundColor = backgroundColor;
     }
 
     public String getLessonTime() {
@@ -40,7 +46,15 @@ public class Lesson {
         return lessonRoom;
     }
 
-    public String getLength() {
+    public String getNextTime() {
+        return nextTime;
+    }
+
+    public int getBackgroundColor() {
+        return backgroundColor;
+    }
+
+    public int getLength() {
         return length;
     }
 
@@ -50,5 +64,9 @@ public class Lesson {
 
     public Calendar getEndTime() {
         return endTime;
+    }
+
+    public String getWhoElseFree() {
+        return whoElseFree;
     }
 }
