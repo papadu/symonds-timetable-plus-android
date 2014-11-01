@@ -53,11 +53,11 @@ public class MyListAdapter extends ArrayAdapter<Lesson> {
         TextView secondTimeTextView = (TextView) itemView.findViewById(R.id.list_item_second_time);
         ImageView arrow = (ImageView) itemView.findViewById(R.id.arrow_icon);
 
-        String fontpath = "fonts/Roboto-Thin.ttf";
+
         String fontpathlight = "fonts/Roboto-Light.ttf";
         Typeface robotoLight = Typeface.createFromAsset(context.getAssets(), fontpathlight);
 
-        Typeface robotoThin = Typeface.createFromAsset(context.getAssets(), fontpath);
+        Typeface robotoThin = Typeface.createFromAsset(context.getAssets(), "fonts/Roboto-Thin.ttf");
         subjectTextView.setTypeface(robotoThin);
         timeTextView.setTypeface(robotoThin);
         secondTimeTextView.setTypeface(robotoThin);

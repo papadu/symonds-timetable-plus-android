@@ -8,8 +8,8 @@
     <application
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
-        android:logo="@drawable/ic_logo"
         android:label="@string/app_name"
+        android:logo="@drawable/ic_logo"
         android:theme="@style/AppTheme" >
         <activity
             android:name=".LoginScreen"
@@ -23,6 +23,14 @@
         <activity
             android:name=".Timetable"
             android:label="@string/title_activity_timetable" >
+        </activity>
+        <activity
+            android:name=".DetailActivity"
+            android:label="@string/title_activity_detail"
+            android:parentActivityName=".Timetable" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.psyngo.michael.symondstimetableplus.Timetable" />
         </activity>
     </application>
 

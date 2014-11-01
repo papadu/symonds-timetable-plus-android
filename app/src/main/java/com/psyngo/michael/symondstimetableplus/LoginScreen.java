@@ -1,5 +1,6 @@
 package com.psyngo.michael.symondstimetableplus;
 
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBarActivity;
@@ -11,6 +12,7 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 
 
 public class LoginScreen extends ActionBarActivity {
@@ -66,6 +68,13 @@ public class LoginScreen extends ActionBarActivity {
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                 Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.fragment_login_screen, container, false);
+            Typeface robotoThin = Typeface.createFromAsset(rootView.getContext().getAssets(), "fonts/Roboto-Light.ttf");
+            EditText usernameEdit = (EditText) rootView.findViewById(R.id.username);
+            EditText passwordEdit = (EditText) rootView.findViewById(R.id.password);
+            TextView subtitle = (TextView) rootView.findViewById(R.id.login_prompt);
+            subtitle.setTypeface(robotoThin);
+            usernameEdit.setTypeface(robotoThin);
+            passwordEdit.setTypeface(robotoThin);
             return rootView;
         }
     }
@@ -74,12 +83,9 @@ public class LoginScreen extends ActionBarActivity {
         EditText usernameEdit = (EditText) findViewById(R.id.username);
         EditText passwordEdit = (EditText) findViewById(R.id.password);
 
-        //String username = usernameEdit.getText().toString();
-        //String password = passwordEdit.getText().toString();
-        String username = "mbrown14";
-        String password = "blackra1n";
-        //String username = "kwhitehead14";
-        //String password = "breakdown328";
+        String username = usernameEdit.getText().toString();
+        String password = passwordEdit.getText().toString();
+
         String ProcessLoginForm = "true";
         String signin = "Sign In";
         GetSymondsTimetable post = new GetSymondsTimetable(this);

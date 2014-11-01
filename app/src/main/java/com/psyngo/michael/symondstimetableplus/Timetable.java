@@ -1,19 +1,28 @@
 package com.psyngo.michael.symondstimetableplus;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.AnimatorSet;
+import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.graphics.Color;
+import android.graphics.Point;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
-import android.util.Log;
+import android.util.TypedValue;
+import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AccelerateInterpolator;
+import android.view.animation.DecelerateInterpolator;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -53,6 +62,14 @@ public class Timetable extends ActionBarActivity
     static List<Lesson> Thursday;
     static List<Lesson> Friday;
 
+    static boolean happeningNow = true;
+    static String happeningNowprefixText = "Happening now";
+    static String happeningNowsubjectText;
+    static String happeningNowsubtitleText;
+    static String nextLessonprefixText = "Your next lesson is";
+    static String NextLessonsubjectText;
+    static String NextLessonsubtitleText;
+
 
     TextView _tvTime;
 
@@ -62,314 +79,7 @@ public class Timetable extends ActionBarActivity
         setContentView(R.layout.activity_timetable);
         Bundle extras = getIntent().getExtras();
         String myExtra = extras.getString("timetableHTML");
-        parseHTML("\n" +
-                "\n" +
-                "<!DOCTYPE html>\n" +
-                "<html xmlns=\"http://www.w3.org/1999/xhtml\">\n" +
-                " <head>\n" +
-                "  <meta http-equiv=\"Content-Type\" content=\"text/html; charset=iso-8859-1\" />\n" +
-                "  <script type=\"text/javascript\" src=\"../../scripts/jquery/jquery-1.9.1.min.js\"></script>\n" +
-                "  <script type=\"text/javascript\" src=\"../../scripts/jquery/jquery-ui-1.10.2.datepicker.min.js\"></script>\n" +
-                "  <script type=\"text/javascript\" src=\"../../scripts/core.js\"></script>\n" +
-                "  <script type=\"text/javascript\" src=\"../../scripts/options.js\"></script>\n" +
-                "  <title>Student Progress | Student Details</title>\n" +
-                "  <link href = \"../../css/default/basic.css\" rel = \"stylesheet\" type = \"text/css\" media = \"screen\" />\n" +
-                "  <link href = \"../../css/default/form.css\" rel = \"stylesheet\" type = \"text/css\" media = \"screen\" />\n" +
-                "  <link href = \"../../css/default/records/options.css\" rel = \"stylesheet\" type = \"text/css\" media = \"screen\" />\n" +
-                "  <link href = \"../../css/default/records/student.css\" rel = \"stylesheet\" type = \"text/css\" media = \"screen\" />\n" +
-                "  <link href = \"../../css/default/records/timetable.css\" rel = \"stylesheet\" type = \"text/css\" media = \"screen\" />\n" +
-                "  <link href = \"../../css/print/basic.css\" rel = \"stylesheet\" type = \"text/css\" media = \"print\" />\n" +
-                "  <link href = \"../../css/print/form.css\" rel = \"stylesheet\" type = \"text/css\" media = \"print\" />\n" +
-                "  <link href = \"../../css/print/records/options.css\" rel = \"stylesheet\" type = \"text/css\" media = \"print\" />\n" +
-                "  <link href = \"../../css/print/records/student.css\" rel = \"stylesheet\" type = \"text/css\" media = \"print\" />\n" +
-                "  <link href = \"../../css/print/records/timetable.css\" rel = \"stylesheet\" type = \"text/css\" media = \"print\" />\n" +
-                "  <link href = \"../../css/default/custom.css\" rel = \"stylesheet\" type = \"text/css\" media = \"screen\" />\n" +
-                "  <link href = \"../../css/default/jquery/smoothness/jquery-ui-1.10.2.custom.min.css\" rel = \"stylesheet\" type = \"text/css\" media = \"screen\" />\n" +
-                "  <link href = \"../../css/print/timetable/timetable.css\" rel = \"stylesheet\" type = \"text/css\" media = \"print\" />\n" +
-                "  <link href = \"../../css/default/timetable/timetable.css\" rel = \"stylesheet\" type = \"text/css\" media = \"screen\" />\n" +
-                " </head>\n" +
-                " <body>\n" +
-                "  <div id = \"container\">\n" +
-                "   <div id = \"header\">\n" +
-                "       <a href = \"../../home.php\"><img id = \"intranet\" src = \"../../images/intranet.gif\" alt = \"\" /></a>\n" +
-                "       <a href = \"../home.php\"><img id = \"site\" src = \"../images/title.gif\" alt = \"\" /></a>\n" +
-                "      <div id = \"top-menu\">\n" +
-                "       <a href = \"#\" class = \"show-nav\">Quick Navigation</a><span>|</span>\n" +
-                "       <a href = \"../contacts/contacts.php\">Contact Us</a>\n" +
-                "      </div>\n" +
-                "      </div>\n" +
-                "      <div id = \"qnav\">\n" +
-                "      <div id = \"nav-body\">\n" +
-                "     <h1>Quick Navigation</h1>\n" +
-                "      <table summary = \"Quick Navigation\">\n" +
-                "      <tr>\n" +
-                "      <td>\n" +
-                "       <h4>My Subjects</h4>\n" +
-                "      <ul>\n" +
-                "       <li><a href = \"../../gs\">A2 General Studies</a></li>\n" +
-                "       <li><a href = \"../../biology\">AS/A Biology</a></li>\n" +
-                "       <li><a href = \"../../chemistry\">AS/A2 Chemistry</a></li>\n" +
-                "       <li><a href = \"../../media\">AS/A2 Media Studies</a></li>\n" +
-                "       <li><a href = \"../../psychology\">AS/A2 Psychology</a></li>\n" +
-                "       <li><a href = \"../../subjects\">All Subject Intranets</a></li>\n" +
-                "      </ul>\n" +
-                "      </td>\n" +
-                "      <td>\n" +
-                "       <h4>Student Support</h4>\n" +
-                "      <ul>\n" +
-                "       <li><a href = \"../../records\">My Details</a></li>\n" +
-                "       <li><a href = \"../../careers\">Careers</a></li>\n" +
-                "       <li><a href = \"../../exams\">Examinations</a></li>\n" +
-                "       <li><a href = \"../../itservices\">IT Services</a></li>\n" +
-                "       <li><a href = \"../../studentservices\">Student Services</a></li>\n" +
-                "       <li><a href = \"../../studysupport\">Study Support</a></li>\n" +
-                "      </ul>\n" +
-                "      </td>\n" +
-                "      </tr>\n" +
-                "      </table>\n" +
-                "      </div>\n" +
-                "       <a href = \"#\" class = \"show-nav\" id = \"hide\"><img src = \"../../images/options/exit.gif\" alt = \"\" /></a>\n" +
-                "      </div>\n" +
-                "      <div id = \"main\">\n" +
-                "      <div id = \"content\">\n" +
-                "       <h1>KENZIE WHITEHEAD, B1J</h1>\n" +
-                "      <ul id = \"navigation\">\n" +
-                "        <li class = \"nav-option\"><a href = \"../home.php\">Home</a></li>\n" +
-                "        <li>Student Timetable</li>\n" +
-                "      </ul>\n" +
-                "      <div id = \"menu-options\">\n" +
-                "      <div>\n" +
-                "      <h1>Student Details</h1>\n" +
-                "      <table summary = \"Class Options\">\n" +
-                "      <tr>\n" +
-                "      <td>\n" +
-                "      <h4>Basic Information</h4>\n" +
-                "      <ul>\n" +
-                "       <li><a href = \"../home.php\">Student Details</a></li>\n" +
-                "       <li><a href = \"../student/timetable.php\">Timetable</a></li>\n" +
-                "       <li><a href = \"../student/mobile.php\">Mobile Phone Settings</a></li>\n" +
-                "      </ul>\n" +
-                "      <h4>Examinations &amp; Qualifications</h4>\n" +
-                "      <ul>\n" +
-                "       <li><a href = \"../student/qoe.php\">Qualifications on Entry</a></li>\n" +
-                "       <li><a href = \"../student/qualifications.php\">College Qualifications</a></li>\n" +
-                "       <li class = \"unavailable\">Module Results</li>\n" +
-                "       <li><a href = \"../student/exams.php\">Exam Timetable</a></li>\n" +
-                "      </ul>\n" +
-                "      </td>\n" +
-                "      <td>\n" +
-                "      <h4>Attendance</h4>\n" +
-                "      <ul>\n" +
-                "       <li><a href = \"../student/attendance/marks.php\">Attendance Marks</a></li>\n" +
-                "       <li><a href = \"../student/attendance/summary.php\">Summary</a></li>\n" +
-                "      </ul>\n" +
-                "      <h4>Coursework Deadlines</h4>\n" +
-                "      <ul>\n" +
-                "       <li><a href = \"../student/coursework.php\">View Deadlines</a></li>\n" +
-                "      </ul>\n" +
-                "      <h4>Student Support</h4>\n" +
-                "      <ul>\n" +
-                "       <li><a href = \"../student/support/access.php\">Exam Arrangements</a></li>\n" +
-                "       <li><a href = \"../student/timetableplanner.php\">Timetable Planner</a></li>\n" +
-                "      </ul>\n" +
-                "      </td>\n" +
-                "      <td>\n" +
-                "      <h4>Progress Reviews</h4>\n" +
-                "      <ul>\n" +
-                "       <li><a href = \"../student/progress/review.php?Student=38000550686742\">Progress Summary</a>\n" +
-                "      </li>\n" +
-                "       <li class = \"unavailable\">Boarding Review</li>\n" +
-                "       <li class = \"unavailable\">My A2 Choices</li>\n" +
-                "      </ul>\n" +
-                "      </td>\n" +
-                "      </tr>\n" +
-                "      </table>\n" +
-                "      </div>\n" +
-                "      <a href = \"#\" class = \"options\" id = \"exit\"><img src = \"../../images/options/exit.gif\" alt = \"Close menu\" /></a>\n" +
-                "      </div>\n" +
-                "      <div id = \"student-overview\"><a href = \"#\" class = \"options\">Student Options</a></div>\n" +
-                "      <div id = \"report-wide\">\n" +
-                "      <div id='TimetableTitle'>\n" +
-                "       <a name='timetablecontrols'></a><div id='TimetableControls'><div><a href='/records/student/timetable.php?v=list&w=616#timetablecontrols' class='listview' title='View as a list'></a><a href='#' onclick='javascript:return false;' class='disabled gridview' title='View as a grid (selected)'></a></div><div><input type='hidden' id='DatePicker'/></div><div><a class='back' href='/records/student/timetable.php?w=615#timetablecontrols' title='Go back 1 week'></a><a class='forward' href='/records/student/timetable.php?w=617#timetablecontrols' title='Go forward 1 week'></a></div></div>\n" +
-                "       <p class='print'>Generated 5:31pm 30 October 2014</p>\n" +
-                "       <h3><span class='print'>Timetable for Kenzie Whitehead /</span>20 to 26 October 2014</h3>\n" +
-                "       <a name='TimetableTop'></a>\n" +
-                "      </div>\n" +
-                "      <table id='Timetable' class='reduced'>\n" +
-                "       <tr>\n" +
-                "       <th class='time'>08:30</th>\n" +
-                "       <th class='day'><a href='/records/student/timetable.php?w=615&d=last#TimetableTop' class='back'></a><span class='normal'>Monday 20</span><span class='full'>Mon 20 Oct</span><a href='/records/student/timetable.php?w=616&d=2#TimetableTop' class='forward'></a></th>\n" +
-                "       <th class='day'><a href='/records/student/timetable.php?w=616&d=1#TimetableTop' class='back'></a><span class='normal'>Tuesday 21</span><span class='full'>Tue 21 Oct</span><a href='/records/student/timetable.php?w=616&d=3#TimetableTop' class='forward'></a></th>\n" +
-                "       <th class='day'><a href='/records/student/timetable.php?w=616&d=2#TimetableTop' class='back'></a><span class='normal'>Wednesday 22</span><span class='full'>Wed 22 Oct</span><a href='/records/student/timetable.php?w=616&d=4#TimetableTop' class='forward'></a></th>\n" +
-                "       <th class='day current'><a href='/records/student/timetable.php?w=616&d=3#TimetableTop' class='back'></a><span class='normal'>Thursday 23</span><span class='full'>Thu 23 Oct</span><a href='/records/student/timetable.php?w=616&d=5#TimetableTop' class='forward'></a></th>\n" +
-                "       <th class='day'><a href='/records/student/timetable.php?w=616&d=4#TimetableTop' class='back'></a><span class='normal'>Friday 24</span><span class='full'>Fri 24 Oct</span><a href='/records/student/timetable.php?w=617&d=1#TimetableTop' class='forward'></a></th>\n" +
-                "       </tr>\n" +
-                "       <tr>\n" +
-                "       <th class='time'>09:25</th>\n" +
-                "        <td class='day blank'>Study Period</td>\n" +
-                "        <td rowspan='1' class='day item lesson'>\n" +
-                "         <p class='title'>Media Studies</p>\n" +
-                "         <p class='subtitle'>Katy Ellis</p>\n" +
-                "         <p class='room'>CC203 <span>8:30am</span></p>\n" +
-                "        <td rowspan='1' class='day item lesson'>\n" +
-                "         <p class='title'>Psychology</p>\n" +
-                "         <p class='subtitle'>Christina Rycroft</p>\n" +
-                "         <p class='room'>JS306 <span>8:30am</span></p>\n" +
-                "        <td rowspan='2' class='day current item lesson'>\n" +
-                "         <p class='title'>Chemistry</p>\n" +
-                "         <p class='subtitle'>Annett Neubauer</p>\n" +
-                "         <p class='room'>SC217 <span>8:30am</span></p>\n" +
-                "        <td rowspan='1' class='day item lesson'>\n" +
-                "         <p class='title'>Symonds Lecture Programme</p>\n" +
-                "         <p class='subtitle'></p>\n" +
-                "         <p class='room'>SC101 <span>8:30am</span></p>\n" +
-                "       </tr>\n" +
-                "       <tr>\n" +
-                "       <th class='time'>10:20</th>\n" +
-                "        <td class='day blank'>Study Period</td>\n" +
-                "        <td class='day blank'>Study Period</td>\n" +
-                "        <td rowspan='1' class='day item lesson'>\n" +
-                "         <p class='title'>Human Biology</p>\n" +
-                "         <p class='subtitle'>Penny Pugh</p>\n" +
-                "         <p class='room'>SC109 <span>9:25am</span></p>\n" +
-                "        <td class='day blank'>Study Period</td>\n" +
-                "       </tr>\n" +
-                "       <tr>\n" +
-                "       <th class='time'>10:40</th>\n" +
-                "        <td rowspan='1' class='day break blank'>\n" +
-                "         <p class='title'>Break</p>\n" +
-                "         <p class='subtitle'></p>\n" +
-                "        <td rowspan='1' class='day break blank'>\n" +
-                "         <p class='title'>Break</p>\n" +
-                "         <p class='subtitle'></p>\n" +
-                "        <td rowspan='1' class='day break blank'>\n" +
-                "         <p class='title'>Break</p>\n" +
-                "         <p class='subtitle'></p>\n" +
-                "        <td rowspan='1' class='day current break blank'>\n" +
-                "         <p class='title'>Break</p>\n" +
-                "         <p class='subtitle'></p>\n" +
-                "        <td rowspan='1' class='day break blank'>\n" +
-                "         <p class='title'>Break</p>\n" +
-                "         <p class='subtitle'></p>\n" +
-                "       </tr>\n" +
-                "       <tr>\n" +
-                "       <th class='time'>11:35</th>\n" +
-                "        <td rowspan='1' class='day item lesson'>\n" +
-                "         <p class='title'>Media Studies</p>\n" +
-                "         <p class='subtitle'>Katy Ellis</p>\n" +
-                "         <p class='room'>CC203 <span>10:40am</span></p>\n" +
-                "        <td class='day blank'>Study Period</td>\n" +
-                "        <td rowspan='2' class='day item lesson'>\n" +
-                "         <p class='title'>Chemistry</p>\n" +
-                "         <p class='subtitle'>Annett Neubauer</p>\n" +
-                "         <p class='room'>SC217 <span>10:40am</span></p>\n" +
-                "        <td class='day current blank'>Study Period</td>\n" +
-                "        <td rowspan='1' class='day item lesson'>\n" +
-                "         <p class='title'>Human Biology</p>\n" +
-                "         <p class='subtitle'>Penny Pugh</p>\n" +
-                "         <p class='room'>SC109 <span>10:40am</span></p>\n" +
-                "       </tr>\n" +
-                "       <tr>\n" +
-                "       <th class='time'>12:30</th>\n" +
-                "        <td class='day blank'>Study Period</td>\n" +
-                "        <td rowspan='1' class='day item lesson'>\n" +
-                "         <p class='title'>Chemistry</p>\n" +
-                "         <p class='subtitle'>Annett Neubauer</p>\n" +
-                "         <p class='room'>SC217 <span>11:35am</span></p>\n" +
-                "        <td rowspan='1' class='day current item lesson'>\n" +
-                "         <p class='title'>Media Studies</p>\n" +
-                "         <p class='subtitle'>Amy Charlewood</p>\n" +
-                "         <p class='room'>CC203 <span>11:35am</span></p>\n" +
-                "        <td rowspan='1' class='day item lesson'>\n" +
-                "         <p class='title'>Psychology</p>\n" +
-                "         <p class='subtitle'>Christina Rycroft</p>\n" +
-                "         <p class='room'>JS306 <span>11:35am</span></p>\n" +
-                "       </tr>\n" +
-                "       <tr>\n" +
-                "       <th class='time'>13:00</th>\n" +
-                "        <td class='day blank'>Study Period</td>\n" +
-                "        <td rowspan='1' class='day item tutorgroup'>\n" +
-                "         <p class='title'>Tutor Group</p>\n" +
-                "         <p class='subtitle'>David Francis</p>\n" +
-                "         <p class='room'>SC217 <span>12:30pm</span></p>\n" +
-                "        <td class='day blank'>Study Period</td>\n" +
-                "        <td class='day current blank'>Study Period</td>\n" +
-                "        <td rowspan='1' class='day item tutorgroup'>\n" +
-                "         <p class='title'>Tutor Group</p>\n" +
-                "         <p class='subtitle'>David Francis</p>\n" +
-                "         <p class='room'>SC217 <span>12:30pm</span></p>\n" +
-                "       </tr>\n" +
-                "       <tr>\n" +
-                "       <th class='time'>13:50</th>\n" +
-                "        <td rowspan='1' class='day break blank'>\n" +
-                "         <p class='title'>Lunch</p>\n" +
-                "         <p class='subtitle'></p>\n" +
-                "        <td rowspan='1' class='day item lesson'>\n" +
-                "         <p class='title'>Workshop</p>\n" +
-                "         <p class='subtitle'>Jennie Barfield</p>\n" +
-                "         <p class='room'>FN121 <span>1:00pm</span></p>\n" +
-                "        <td rowspan='1' class='day break blank'>\n" +
-                "         <p class='title'>Lunch</p>\n" +
-                "         <p class='subtitle'></p>\n" +
-                "        <td rowspan='1' class='day current break blank'>\n" +
-                "         <p class='title'>Lunch</p>\n" +
-                "         <p class='subtitle'></p>\n" +
-                "        <td rowspan='1' class='day break blank'>\n" +
-                "         <p class='title'>Lunch</p>\n" +
-                "         <p class='subtitle'></p>\n" +
-                "       </tr>\n" +
-                "       <tr>\n" +
-                "       <th class='time'>14:45</th>\n" +
-                "        <td rowspan='1' class='day item lesson'>\n" +
-                "         <p class='title'>Psychology</p>\n" +
-                "         <p class='subtitle'>Geoffrey Rolls, Christina Rycroft</p>\n" +
-                "         <p class='room'>JS306 <span>1:50pm</span></p>\n" +
-                "        <td rowspan='1' class='day item lesson'>\n" +
-                "         <p class='title'>Human Biology</p>\n" +
-                "         <p class='subtitle'>Penny Pugh</p>\n" +
-                "         <p class='room'>SC109 <span>1:50pm</span></p>\n" +
-                "        <td class='day blank'>Study Period</td>\n" +
-                "        <td class='day current blank'>Study Period</td>\n" +
-                "        <td class='day blank'>Study Period</td>\n" +
-                "       </tr>\n" +
-                "       <tr>\n" +
-                "       <th class='time'>16:35</th>\n" +
-                "        <td rowspan='1' class='day item lesson'>\n" +
-                "         <p class='title'>Human Biology</p>\n" +
-                "         <p class='subtitle'>Penny Pugh</p>\n" +
-                "         <p class='room'>SC109 <span>2:45pm</span></p>\n" +
-                "        <td rowspan='1' class='day item lesson'>\n" +
-                "         <p class='title'>Psychology</p>\n" +
-                "         <p class='subtitle'>Geoffrey Rolls</p>\n" +
-                "         <p class='room'>JS306 <span>2:45pm</span></p>\n" +
-                "        <td class='day blank'>Study Period</td>\n" +
-                "        <td class='day current blank'>Study Period</td>\n" +
-                "        <td rowspan='1' class='day item lesson'>\n" +
-                "         <p class='title'>Media Studies</p>\n" +
-                "         <p class='subtitle'>Amy Charlewood</p>\n" +
-                "         <p class='room'>CC203 <span>2:45pm</span></p>\n" +
-                "       </tr>\n" +
-                "      </table>\n" +
-                "       <div id='Floaters' class='lessonList'>\n" +
-                "        <h4>&quot;Floating&quot; lessons</h4>\n" +
-                "        <p>The following lessons are &quot;floating&quot; lessons.  This means that sessions run throughout the week and the student is expected to attend one of them.</p>\n" +
-                "        <ul>\n" +
-                "         <li><span class='subject'>Multigym</span><span class='teacher'>Jenny Phillips</span><span class='room'>MH203</span></li>\n" +
-                "        </ul>\n" +
-                "       </div>\n" +
-                "<script language='javascript'>\n" +
-                " $(function(){var zi=500;$.each($(\"th.time\"),function(){$(this).css(\"z-index\",zi);zi--;$(this).wrapInner($(\"<span/>\").css(\"z-index\",zi+1000));$(this).wrapInner($(\"<div/>\").css(\"z-index\",zi+100));});$(\"#DatePicker\").datepicker({showOn:\"button\",buttonImage:\"/css/images/timetable/calendar-orange.png\",buttonImageOnly:true,buttonText:\"Choose date\",dateFormat: \"yy-mm-dd\",minDate:\"2014-10-13\",maxDate:\"2014-11-30\",onSelect:function(value,date){top.location=\"/records/student/timetable.php?w=\"+value+\"\";}});});\n" +
-                "</script>\n" +
-                "      </div>\n" +
-                "      </div>\n" +
-                "<div id = \"footer\">\n" +
-                "       <a href = \"mailto:webmaster@psc.ac.uk\">Contact Webmaster</a>\n" +
-                "       <span>|</span><a href = \"../../appearance\">Change Appearance</a>\n" +
-                "      </div>\n" +
-                "      </div>\n" +
-                "  </div>\n" +
-                " </body>\n" +
-                "</html>");
+        parseHTML(myExtra);
 
         mNavigationDrawerFragment = (NavigationDrawerFragment)
                 getSupportFragmentManager().findFragmentById(R.id.navigation_drawer);
@@ -412,6 +122,125 @@ public class Timetable extends ActionBarActivity
                 }
             }
         }
+    }
+
+    public void animateQuickview(final View view){
+        final LinearLayout quickview = (LinearLayout)  view.findViewById(R.id.Quick_view);
+        final TextView topTextview = (TextView) view.findViewById(R.id.prefix_textview);
+        final TextView middleTextview = (TextView) view.findViewById(R.id.subject_textview);
+        final TextView bottomTextview = (TextView) view.findViewById(R.id.time_left_texview);
+        final String topText;
+        final String middleText;
+        final String bottomText;
+
+        quickview.setClickable(false);
+
+        Display display = getWindowManager().getDefaultDisplay();
+        Point size = new Point();
+        display.getSize(size);
+        final int width = size.x;
+        if(happeningNow){
+            topText = nextLessonprefixText;
+            middleText = NextLessonsubjectText;
+            bottomText = NextLessonsubtitleText;
+
+
+        }
+        else{
+            topText = happeningNowprefixText;
+            middleText = happeningNowsubjectText;
+            bottomText = happeningNowsubtitleText;
+
+        }
+
+
+        ValueAnimator topExit = getAnimation(16, -300, true, topTextview, view, width, topText);
+        ValueAnimator middleExit = getAnimation(16, -300, true, middleTextview, view, width, middleText);
+        ValueAnimator bottomExit = getAnimation(16, -300, true, bottomTextview, view, width, bottomText);
+
+        ValueAnimator topReturn = getAnimation(-300, 16, false, topTextview, view, width, topText);
+        ValueAnimator middleReturn = getAnimation(-300, 16, false, middleTextview, view, width, middleText);
+        ValueAnimator bottomReturn = getAnimation(-300, 16, false, bottomTextview, view, width, bottomText);
+
+        AnimatorSet textviews = new AnimatorSet();
+        textviews.play(topExit).before(middleExit);
+        textviews.play(middleExit).before(bottomExit);
+        textviews.play(bottomExit);
+        textviews.addListener(new AnimatorListenerAdapter()
+        {
+            @Override
+            public void onAnimationEnd(Animator animation)
+            {
+                happeningNow = !happeningNow;
+
+            }
+        });
+
+
+        AnimatorSet textviewReturn = new AnimatorSet();
+        textviewReturn.play(topReturn).before(middleReturn);
+        textviewReturn.play(middleReturn).before(bottomReturn);
+        textviewReturn.play(bottomReturn);
+
+        AnimatorSet fullAnimation = new AnimatorSet();
+        fullAnimation.play(textviews).before(textviewReturn);
+        fullAnimation.play(textviewReturn);
+        fullAnimation.addListener(new AnimatorListenerAdapter()
+        {
+            @Override
+            public void onAnimationEnd(Animator animation)
+            {
+                quickview.setClickable(true);
+
+            }
+        });
+        fullAnimation.start();
+
+
+
+
+
+
+    }
+
+    public ValueAnimator getAnimation(int startMargin, int endMargin, boolean exitAnimation, final TextView textview, final View view, final int screenwidth, final String newText){
+        ValueAnimator valAnim = ValueAnimator.ofInt(startMargin, endMargin);
+        valAnim.setDuration(200);
+
+
+        valAnim.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                lp.setMargins((int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (Integer) animation.getAnimatedValue(), view.getContext().getResources().getDisplayMetrics()), 0, 0, 0);
+                lp.width = screenwidth;
+                textview.setLayoutParams(lp);
+
+            }
+
+
+        });
+
+        if(exitAnimation){
+            valAnim.setInterpolator(new AccelerateInterpolator());
+
+        }
+        else{
+            valAnim.setInterpolator(new DecelerateInterpolator());
+            valAnim.addListener(new AnimatorListenerAdapter()
+            {
+                @Override
+                public void onAnimationStart(Animator animation)
+                {
+                    textview.setText(newText);
+
+                }
+            });
+        }
+
+        return valAnim;
+
     }
 
 
@@ -509,7 +338,8 @@ public class Timetable extends ActionBarActivity
                 }
 
                 if (rows.size() == 10 && rows.size() - 1 == j) {
-                    length = 2;
+
+                        length = 2;
 
                 }
 
@@ -526,10 +356,6 @@ public class Timetable extends ActionBarActivity
                     time = times[lessonIndex];
                 }
 
-                lessonIndex += length;
-                if(lessonIndex>9){
-                lessonIndex=0;
-                }
 
                 Calendar endcal = Calendar.getInstance();
                 Calendar startcal = Calendar.getInstance();
@@ -540,11 +366,39 @@ public class Timetable extends ActionBarActivity
                 } catch (ParseException e) {
                     e.printStackTrace();
                 }
-                //Log.d("myapp", j + time + subject + length + nexttime);
 
-                Lesson lesson = new Lesson(time, subject, teacher, room, length, nexttime, whoElseFree, startcal, endcal, subjectColor);
+                if (length == 2 && subject.equals("Free Period")){
+                    try {
+                        startcal.setTime(new SimpleDateFormat("HH:mm").parse(time));
+                        endcal.setTime(new SimpleDateFormat("HH:mm").parse(nexttime));
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
+                    Week.add(new Lesson(time, subject, teacher, room, 1, nexttime, whoElseFree, startcal, endcal, subjectColor));
+                try {
+                    startcal.setTime(new SimpleDateFormat("HH:mm").parse(nexttime));
+                    endcal.setTime(new SimpleDateFormat("HH:mm").parse(times[lessonIndex + length]));
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+                    if (useFreeHighlight) {
+                        subjectColor = Color.rgb(19, 162, 215);
+                        useFreeHighlight = false;
+                    } else {
+                        subjectColor = Color.rgb(0, 153, 204);
+                        useFreeHighlight = true;
+                    }
+                Week.add(new Lesson(nexttime, subject, teacher, room, 1, nexttime, whoElseFree, startcal, endcal, subjectColor));
+                }
+                else {
+                    Lesson lesson = new Lesson(time, subject, teacher, room, length, nexttime, whoElseFree, startcal, endcal, subjectColor);
 
-                Week.add(lesson);
+                    Week.add(lesson);
+                }
+                lessonIndex += length;
+                if(lessonIndex>9){
+                    lessonIndex=0;
+                }
 
             }
 
@@ -578,6 +432,8 @@ public class Timetable extends ActionBarActivity
 
         }
     }
+
+
 
     @Override
     public void onNavigationDrawerItemSelected(int position) {
@@ -678,6 +534,8 @@ public class Timetable extends ActionBarActivity
         }
 
 
+
+
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
@@ -685,18 +543,19 @@ public class Timetable extends ActionBarActivity
             View rootView = inflater.inflate(R.layout.fragment_timetable, container, false);
             Bundle args = getArguments();
 
-            int dayNum;
-            if (openCurrentDay == true) {
-                Calendar calendar = Calendar.getInstance();
-                dayNum = calendar.get(Calendar.DAY_OF_WEEK) - 1;
-                if (dayNum > 5 || dayNum == 0) {
-                    dayNum = 1;
-                }
-                openCurrentDay = false;
+            Typeface robotoThin = Typeface.createFromAsset(rootView.getContext().getAssets(), "fonts/Roboto-Light.ttf");
+            TextView subtitle = (TextView) rootView.findViewById(R.id.time_left_texview);
+            TextView subject = (TextView) rootView.findViewById(R.id.subject_textview);
+            TextView prefix = (TextView) rootView.findViewById(R.id.prefix_textview);
 
-            } else {
-                dayNum = args.getInt(ARG_SECTION_NUMBER);
-            }
+            prefix.setTypeface(robotoThin);
+            //subject.setTypeface(robotoThin);
+            subtitle.setTypeface(robotoThin);
+
+            int dayNum;
+
+             dayNum = args.getInt(ARG_SECTION_NUMBER);
+
             ArrayAdapter<Lesson> adapter = null;
             TextView dayHeader = (TextView) rootView.findViewById(R.id.day_textview);
             switch (dayNum) {
@@ -751,10 +610,11 @@ class Quickview {
 
     public void updateQuickview() {
 
-        TextView quickviewTitle = (TextView) rootView.findViewById(R.id.subject_textview);
-        TextView timelefttextview = (TextView) rootView.findViewById(R.id.time_left_texview);
-        TextView prefixtextview = (TextView) rootView.findViewById(R.id.prefix_textview);
+        TextView middleTextView = (TextView) rootView.findViewById(R.id.subject_textview);
+        TextView bottomTextView = (TextView) rootView.findViewById(R.id.time_left_texview);
+        TextView topTextView = (TextView) rootView.findViewById(R.id.prefix_textview);
         ImageView divider = (ImageView) rootView.findViewById(R.id.divider_imageview);
+
 
         Calendar calendar = Calendar.getInstance();
         int dayNum = calendar.get(Calendar.DAY_OF_WEEK) - 1;
@@ -782,9 +642,9 @@ class Quickview {
 
             }
 
-            quickviewTitle.setVisibility(View.VISIBLE);
-            timelefttextview.setVisibility(View.VISIBLE);
-            prefixtextview.setVisibility(View.VISIBLE);
+            middleTextView.setVisibility(View.VISIBLE);
+            bottomTextView.setVisibility(View.VISIBLE);
+            topTextView.setVisibility(View.VISIBLE);
             divider.setVisibility(View.VISIBLE);
 
 
@@ -794,43 +654,43 @@ class Quickview {
                 cal.set(Calendar.DAY_OF_MONTH, les.getEndTime().get(Calendar.DAY_OF_MONTH));
                 cal.set(Calendar.MONTH, les.getEndTime().get(Calendar.MONTH));
                 cal.set(Calendar.YEAR, les.getEndTime().get(Calendar.YEAR));
-                cal.add(Calendar.HOUR_OF_DAY, -10);
 
 
-                quickviewTitle.setText("No more Lessons today");
-                prefixtextview.setText("");
-                timelefttextview.setText("");
+
 
 
                 Date dt = cal.getTime();
                 long currenttime = dt.getTime();
                 if (currenttime > les.getStartTime().getTime().getTime() && currenttime < les.getEndTime().getTime().getTime()) {
 
-                    Log.d("myapp", les.getEndTime().getTime().toString());
-                    Log.d("myapp", cal.getTime().toString());
 
-                    String timeleft = String.valueOf(Math.abs(les.getEndTime().getTimeInMillis() - cal.getTimeInMillis()) / 60000);
-                    timelefttextview.setText(timeleft + " Minutes left");
-                    quickviewTitle.setText(les.getLessonName());
-
-                    prefixtextview.setText("Happening now");
-                    break;
-
-                } else if (les.getLessonName().equals("Break") != true && currenttime < les.getStartTime().getTime().getTime() && les.getLessonName().equals("Free Period") != true) {
+                    String timeleft = String.valueOf(1+(Math.abs(les.getEndTime().getTimeInMillis() - cal.getTimeInMillis()) / 60000));
 
 
-                    quickviewTitle.setText(les.getLessonName());
-                    long timeleft = Math.abs(les.getStartTime().getTimeInMillis() - cal.getTimeInMillis()) / 60000;
+                    Timetable.happeningNowsubjectText = les.getLessonName();
+                    if(les.getLessonName().equals("Free Period")){
+                        Timetable.happeningNowsubtitleText = "With Mckenzie, Elliot and 5 others";
+
+                    }
+                    else {
+                        Timetable.happeningNowsubtitleText = timeleft + " Minutes left";
+                    }
+
+                } else if (!les.getLessonName().equals("Break")&& currenttime < les.getStartTime().getTime().getTime() && !les.getLessonName().equals("Free Period")&& !les.getLessonName().equals("Lunch")) {
+
+
+                    Timetable.NextLessonsubjectText = les.getLessonName();
+                    long timeleft = 1+(Math.abs(les.getStartTime().getTimeInMillis() - cal.getTimeInMillis()) / 60000);
                     if (timeleft < 60) {
                         String timeleftminutes = String.valueOf(timeleft);
-                        timelefttextview.setText("in " + timeleftminutes + " Minutes");
+                        Timetable.NextLessonsubtitleText = ("in " + timeleftminutes + " Minutes");
                     } else {
                         String timeleftminutes = String.valueOf(timeleft % 60);
                         String timelefthours = String.valueOf((timeleft - (timeleft % 60)) / 60) + " Hours";
-                        timelefttextview.setText("in " + timelefthours + " and " + timeleftminutes + " Minutes");
+                        Timetable.NextLessonsubtitleText = ("in " + timelefthours + " and " + timeleftminutes + " Minutes");
                     }
 
-                    prefixtextview.setText("Your next lesson is");
+
 
 
                     break;
@@ -839,10 +699,21 @@ class Quickview {
                 }
 
             }
+
+            if(Timetable.happeningNow){
+                topTextView.setText(Timetable.happeningNowprefixText);
+                middleTextView.setText(Timetable.happeningNowsubjectText);
+                bottomTextView.setText(Timetable.happeningNowsubtitleText);
+            }
+            else{
+                topTextView.setText(Timetable.nextLessonprefixText);
+                middleTextView.setText(Timetable.NextLessonsubjectText);
+                bottomTextView.setText(Timetable.NextLessonsubtitleText);
+            }
         } else {
-            quickviewTitle.setVisibility(View.GONE);
-            timelefttextview.setVisibility(View.GONE);
-            prefixtextview.setVisibility(View.GONE);
+            middleTextView.setVisibility(View.GONE);
+            bottomTextView.setVisibility(View.GONE);
+            topTextView.setVisibility(View.GONE);
             divider.setVisibility(View.GONE);
         }
 

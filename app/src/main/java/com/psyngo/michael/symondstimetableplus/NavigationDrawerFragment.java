@@ -21,6 +21,8 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
+import java.util.Calendar;
+
 /**
  * Fragment used for managing interactions for and presentation of a navigation drawer.
  * See the <a href="https://developer.android.com/design/patterns/navigation-drawer.html#Interaction">
@@ -66,6 +68,13 @@ public class NavigationDrawerFragment extends Fragment {
 
         // Read in the flag indicating whether or not the user has demonstrated awareness of the
         // drawer. See PREF_USER_LEARNED_DRAWER for details.
+        Calendar calendar = Calendar.getInstance();
+        int dayNum = calendar.get(Calendar.DAY_OF_WEEK) - 2;
+        if (dayNum > 4 || dayNum < 0) {
+            dayNum = 0;
+        }
+        mCurrentSelectedPosition = dayNum;
+
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getActivity());
         mUserLearnedDrawer = sp.getBoolean(PREF_USER_LEARNED_DRAWER, false);
 

@@ -9,19 +9,20 @@
     tools:context=".LoginScreen$PlaceholderFragment"
     android:background="@drawable/gradient"
     android:orientation="vertical"
-    android:gravity="center_vertical|center|center_horizontal">
+    android:gravity="center_horizontal">
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Log in to your Peter Symonds account"
-        android:id="@+id/textView"
+        android:text="Log in to your \nPeter Symonds account"
+        android:id="@+id/login_prompt"
         android:layout_above="@+id/username"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="60dp"
-        android:textSize="25sp"
+        android:layout_marginBottom="50dp"
+        android:textSize="20sp"
         android:gravity="center_horizontal"
-        android:textColor="#ffffff" />
+        android:textColor="#ffffff"
+        android:layout_marginTop="50dp" />
 
     <EditText
         android:layout_width="wrap_content"
@@ -53,12 +54,14 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Submit"
+        android:text="Log in"
         android:id="@+id/submitButton"
         android:layout_marginTop="39dp"
         android:layout_below="@+id/password"
         android:layout_centerHorizontal="true"
-        android:onClick="onSubmit"/>
+        android:onClick="onSubmit"
+        android:background="#ff41b0ac"
+        android:textColor="#ffffffff" />
 
 
 

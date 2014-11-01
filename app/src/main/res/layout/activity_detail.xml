@@ -1,0 +1,42 @@
+<LinearLayout
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:background="#33b5e5"
+    android:gravity="center_vertical|center_horizontal">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="08:30"
+        android:id="@+id/textView2"
+        android:textColor="#ffffff"
+        android:textSize="30sp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="Mathematics"
+        android:id="@+id/textView"
+        android:textColor="#ffffff"
+        android:textSize="40sp"
+        android:gravity="center_horizontal" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="VY101"
+        android:id="@+id/textView3"
+        android:textColor="#ffffff"
+        android:textSize="30sp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="David Shires"
+        android:id="@+id/textView4"
+        android:textColor="#ffffff" />
+
+</LinearLayout>

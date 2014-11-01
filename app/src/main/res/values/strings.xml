@@ -20,7 +20,8 @@
         <item>Wednesday</item>
         <item>Thursday</item>
         <item>Friday</item>
-
     </string-array>
+
+    <string name="title_activity_detail">DetailActivity</string>
 
 </resources>
