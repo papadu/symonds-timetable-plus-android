@@ -5,7 +5,8 @@
     android:orientation="horizontal" android:layout_width="match_parent"
     android:layout_height="144dp"
     android:weightSum="1"
-    android:id="@+id/list_item_container">
+    android:id="@+id/list_item_container"
+    android:tag="a">
 
 
     <LinearLayout

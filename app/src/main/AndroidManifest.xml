@@ -32,6 +32,24 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.psyngo.michael.symondstimetableplus.Timetable" />
         </activity>
+        <activity
+            android:name=".Detail_FreePeriod_Activity"
+            android:label="@string/title_activity_detail__free_period_"
+            android:parentActivityName=".Timetable" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.psyngo.michael.symondstimetableplus.Timetable" />
+        </activity>
+        <activity
+            android:name=".AddAFriend_Activity"
+            android:label="@string/title_activity_add_afriend_"
+            android:parentActivityName=".Timetable" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.psyngo.michael.symondstimetableplus.Timetable" />
+            <meta-data android:name="android.app.searchable"
+                android:resource="@xml/searchable" />
+        </activity>
     </application>
 
 </manifest>

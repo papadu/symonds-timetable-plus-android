@@ -10,7 +10,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -39,7 +38,7 @@ public class MyListAdapter extends ArrayAdapter<Lesson> {
         if (itemView == null) {
 
 
-            itemView = mInflater.inflate(R.layout.list_item_lesson, parent, false);
+            itemView = mInflater.inflate(R.layout.lesson, parent, false);
 
 
         }
@@ -49,9 +48,6 @@ public class MyListAdapter extends ArrayAdapter<Lesson> {
 
 
         TextView subjectTextView = (TextView) itemView.findViewById(R.id.list_item_subject_textview);
-        TextView timeTextView = (TextView) itemView.findViewById(R.id.list_item_first_time);
-        TextView secondTimeTextView = (TextView) itemView.findViewById(R.id.list_item_second_time);
-        ImageView arrow = (ImageView) itemView.findViewById(R.id.arrow_icon);
 
 
         String fontpathlight = "fonts/Roboto-Light.ttf";
@@ -59,26 +55,23 @@ public class MyListAdapter extends ArrayAdapter<Lesson> {
 
         Typeface robotoThin = Typeface.createFromAsset(context.getAssets(), "fonts/Roboto-Thin.ttf");
         subjectTextView.setTypeface(robotoThin);
-        timeTextView.setTypeface(robotoThin);
-        secondTimeTextView.setTypeface(robotoThin);
+
 
         subjectTextView.setVisibility(View.VISIBLE);
-        timeTextView.setVisibility(View.VISIBLE);
-        arrow.setVisibility(View.VISIBLE);
 
 
-        LinearLayout container = (LinearLayout) itemView.findViewById(R.id.list_item_container);
-        LinearLayout subjectContainer = (LinearLayout) itemView.findViewById(R.id.subject_container);
-        LinearLayout subjectTextviewContainer = (LinearLayout) itemView.findViewById(R.id.subject_textview_container);
+        LinearLayout container = (LinearLayout) itemView.findViewById(R.id.list_item_container_linearlayout);
+
+        LinearLayout subjectTextviewContainer = (LinearLayout) itemView.findViewById(R.id.list_item_subject_container_linearlayout);
 
         ViewGroup.LayoutParams contParams = container.getLayoutParams();
         ViewGroup.LayoutParams subjectContParams = subjectTextviewContainer.getLayoutParams();
 
 
         subjectTextView.setText(currentLesson.getLessonName());
-        timeTextView.setText(currentLesson.getLessonTime());
-        secondTimeTextView.setText(currentLesson.getNextTime());
-        subjectContainer.setBackgroundColor(currentLesson.getBackgroundColor());
+
+
+        container.setBackgroundColor(currentLesson.getBackgroundColor());
 
         subjectTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 30);
         subjectTextView.setLineSpacing(-10, 1);
@@ -93,11 +86,6 @@ public class MyListAdapter extends ArrayAdapter<Lesson> {
         subjectContParams.height=(int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 72, context.getResources().getDisplayMetrics());
 
 
-        if (currentLesson.getLength() == 2) {
-            contParams.height = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 144, context.getResources().getDisplayMetrics());
-
-        }
-
         if (currentLesson.getLessonName().equals("Free Period")){
             SpannableString txt = new SpannableString("Free Period\n With Elliot, Mckenzie...");
             txt.setSpan(new RelativeSizeSpan(0.5f), 11, txt.length(),0);
@@ -109,11 +97,10 @@ public class MyListAdapter extends ArrayAdapter<Lesson> {
 
 
         if (currentLesson.getLessonName().equals("Break")) {
-            subjectContainer.setBackgroundColor(Color.rgb(51,181,229));
+            container.setBackgroundColor(Color.rgb(51,181,229));
             contParams.height=(int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 24, context.getResources().getDisplayMetrics());
 
-            timeTextView.setVisibility(View.GONE);
-            arrow.setVisibility(View.GONE);
+
             subjectContParams.height=(int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 24, context.getResources().getDisplayMetrics());
             subjectTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
 
@@ -121,10 +108,7 @@ public class MyListAdapter extends ArrayAdapter<Lesson> {
 
         }
         if(currentLesson.getLessonName().equals("Lunch")){
-            subjectContainer.setBackgroundColor(Color.rgb(51,181,229));
-            timeTextView.setVisibility(View.GONE);
-            arrow.setVisibility(View.GONE);
-
+            container.setBackgroundColor(Color.rgb(51,181,229));
         }
 
 

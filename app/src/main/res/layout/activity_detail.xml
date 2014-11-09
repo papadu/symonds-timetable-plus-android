@@ -3,14 +3,14 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:background="#33b5e5"
+    android:background="@drawable/gradient"
     android:gravity="center_vertical|center_horizontal">
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="08:30"
-        android:id="@+id/textView2"
+        android:id="@+id/detail_timetextview"
         android:textColor="#ffffff"
         android:textSize="30sp" />
 
@@ -19,7 +19,7 @@
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="Mathematics"
-        android:id="@+id/textView"
+        android:id="@+id/detail_subjecttextview"
         android:textColor="#ffffff"
         android:textSize="40sp"
         android:gravity="center_horizontal" />
@@ -28,7 +28,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="VY101"
-        android:id="@+id/textView3"
+        android:id="@+id/detail_roomtextview"
         android:textColor="#ffffff"
         android:textSize="30sp" />
 
@@ -36,7 +36,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="David Shires"
-        android:id="@+id/textView4"
+        android:id="@+id/detail_teacherteactview"
         android:textColor="#ffffff" />
 
 </LinearLayout>

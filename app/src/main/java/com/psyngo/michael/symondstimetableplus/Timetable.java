@@ -5,15 +5,21 @@ import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
 import android.animation.ValueAnimator;
 import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.Typeface;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
+import android.text.SpannableString;
+import android.text.style.RelativeSizeSpan;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.Display;
 import android.view.LayoutInflater;
@@ -23,10 +29,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
-import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.TextView;
 
 import org.jsoup.Jsoup;
@@ -37,13 +41,18 @@ import org.jsoup.select.Elements;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
+import io.orchestrate.client.Client;
+import io.orchestrate.client.KvMetadata;
+import io.orchestrate.client.OrchestrateClient;
+
 
 public class Timetable extends ActionBarActivity
-        implements NavigationDrawerFragment.NavigationDrawerCallbacks {
+        implements NavigationDrawerFragment.NavigationDrawerCallbacks{
 
     /**
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
@@ -70,16 +79,38 @@ public class Timetable extends ActionBarActivity
     static String NextLessonsubjectText;
     static String NextLessonsubtitleText;
 
+    static List<String> times = new ArrayList<String>(Arrays.asList("08:30", "09:25", "10:20", "10:40", "11:35", "12:30", "13:00", "13:50", "14:45", "15:40", "16:35"));
 
-    TextView _tvTime;
+
+    static List<String> lessontimes = new ArrayList<String>(Arrays.asList("08:30"));
+
+    static List<Lesson> todaysLessons = null;
+
+    static Lesson clickedLesson;
+
+
+    static boolean started = false;
+
+    static View root;
+
+
+
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_timetable);
-        Bundle extras = getIntent().getExtras();
-        String myExtra = extras.getString("timetableHTML");
-        parseHTML(myExtra);
+
+        if(!started) {
+            Bundle extras = getIntent().getExtras();
+            String myExtra = extras.getString("timetableHTML");
+            parseHTML(myExtra);
+            started=true;
+        }
+
+        addFriends();
 
         mNavigationDrawerFragment = (NavigationDrawerFragment)
                 getSupportFragmentManager().findFragmentById(R.id.navigation_drawer);
@@ -87,9 +118,14 @@ public class Timetable extends ActionBarActivity
 
         Thread myThread = null;
 
+
+
         Runnable myRunnableThread = new CountDownRunner();
         myThread = new Thread(myRunnableThread);
         myThread.start();
+
+
+
 
 
         // Set up the drawer.
@@ -98,11 +134,39 @@ public class Timetable extends ActionBarActivity
                 (DrawerLayout) findViewById(R.id.drawer_layout));
     }
 
+    public void addFriends(){
+        for(FriendList fl : AddAFriend_Activity.friends){
+            Monday = addFriendsFreePeriods(Monday, fl.getValue().getMonday(), fl.getKey());
+            Tuesday = addFriendsFreePeriods(Tuesday, fl.getValue().getTuesday(), fl.getKey());
+            Wednesday = addFriendsFreePeriods(Wednesday, fl.getValue().getWednesday(), fl.getKey());
+            Thursday = addFriendsFreePeriods(Thursday, fl.getValue().getThursday(), fl.getKey());
+            Friday = addFriendsFreePeriods(Friday, fl.getValue().getFriday(), fl.getKey());
+        }
+
+    }
+
+    public List<Lesson> addFriendsFreePeriods(List<Lesson> day, List<Calendar[]> friendsDay, String name){
+        for (Lesson les: day){
+            for(Calendar[] free : friendsDay) {
+                if (les.getLessonName().equals("Free Period") && les.getStartTime().getTime().getTime() <= free[0].getTime().getTime() && les.getEndTime().getTime().getTime() >= free[1].getTime().getTime()){
+                    List<String> whosFree = les.getWhoElseFree();
+                    whosFree.add(name);
+                    les.setWhoElseFree(whosFree);
+
+                }
+            }
+        }
+
+        return day;
+    }
+
+
+
 
     public void doWork() {
         runOnUiThread(new Runnable() {
             public void run() {
-                Quickview quickview = new Quickview(findViewById(android.R.id.content));
+                Quickview quickview = new Quickview(root);
                 quickview.updateQuickview();
             }
         });
@@ -255,14 +319,15 @@ public class Timetable extends ActionBarActivity
         String teacher;
         String room;
         String time;
-        String nexttime = "";
-        String whoElseFree = "";
+
+        List<String> whoElseFree = new ArrayList<String>();
         int subjectColor = Color.rgb(22,168,158);
         int colorIndex = 0;
         int[] subjectColors = new int[]{Color.rgb(24,212,179), Color.rgb(0,191,165),Color.rgb(13,182,159)};
-        String[] times = new String[]{"08:30", "09:25", "10:20", "10:40", "11:35", "12:30", "13:00", "13:50", "14:45", "15:40", "16:35"};
+
         boolean useFreeHighlight = true;
-        int lessonIndex = 0;
+
+
 
 
         Week = new ArrayList<Lesson>();
@@ -272,18 +337,46 @@ public class Timetable extends ActionBarActivity
         Thursday = new ArrayList<Lesson>();
         Friday = new ArrayList<Lesson>();
 
+        List<Calendar[]> mondayFrees = new ArrayList<Calendar[]>();
+        List<Calendar[]> tuesdayFrees = new ArrayList<Calendar[]>();
+        List<Calendar[]> wednesdayFrees = new ArrayList<Calendar[]>();
+        List<Calendar[]> thursdayFrees = new ArrayList<Calendar[]>();
+        List<Calendar[]> fridayFrees = new ArrayList<Calendar[]>();
+
+        List<Lesson> TodaysLessons = new ArrayList<Lesson>();
+
+        int day = 1;
+
+
+
 
         int[] offsets = new int[rows.size()];
 
-        for (int i = 1; i < rows.get(0).children().size(); i++) //unless colspans are used, this should return the number of columns
+        for (int i = 0; i < rows.get(0).children().size(); i++) //unless colspans are used, this should return the number of columns
         {
+
             for (int j = 1; j < rows.size(); j++) // loops through the rows of each column
             {
-                Element cell = rows.get(j).child(i + offsets[j]); //get an individual cell
 
+                Element cell = rows.get(j).child(i + offsets[j]); //get an individual cell
+                if(cell.hasClass("time")){
+                    lessontimes.add(cell.text());
+
+
+
+
+                    continue;
+                }
+
+
+
+                //Log.d("myapp", "j:" + j + "lessonIndex: " + lessonIndex);
+
+
+                int rowspan;
                 if (cell.hasAttr("rowspan")) //if that cell has a rowspan
                 {
-                    int rowspan = Integer.parseInt(cell.attr("rowspan"));
+                    rowspan = Integer.parseInt(cell.attr("rowspan"));
 
                     for (int k = 1; k < rowspan; k++) {
                         offsets[j + k]--; //add offsets to rows that now have a cell "missing"
@@ -291,14 +384,19 @@ public class Timetable extends ActionBarActivity
 
                     j += rowspan - 1; //add rowspan to index, to skip the "missing" cells
                 }
+                else{
+                    rowspan = 1;
+                }
 
-                if (cell.hasClass("lesson") || cell.hasClass("activity") || cell.hasClass("tutorgroup")) {
+                time = lessontimes.get(j-rowspan);
+
+                if (cell.hasClass("item")) {
                     subject = cell.select(".title").text();
                     teacher = cell.select(".subtitle").text();
                     String[] split = cell.select(".room").text().split(" ");
                     room = split[0];
-                    time = times[lessonIndex];
-                    length = Integer.parseInt(cell.attr("rowspan"));
+
+
 
                     if(colorIndex > subjectColors.length-1){
                         colorIndex = 0;
@@ -318,7 +416,7 @@ public class Timetable extends ActionBarActivity
                 } else //if (cell.hasClass("blank"))//
                 {
                     subject = cell.text();
-                    length = 1;
+
                     colorIndex = 0;
                     if(!subject.equals("Break") && !subject.equals("Lunch")) {
                         if (useFreeHighlight) {
@@ -333,15 +431,11 @@ public class Timetable extends ActionBarActivity
 
                     teacher = "";
                     room = "";
-                    time = times[lessonIndex];
+
 
                 }
 
-                if (rows.size() == 10 && rows.size() - 1 == j) {
 
-                        length = 2;
-
-                }
 
                 if(subject.equals("Study Period")){
                     subject = "Free Period";
@@ -351,86 +445,129 @@ public class Timetable extends ActionBarActivity
                     subject = "Lecture Programme";
                 }
 
-                if(length == 2){
-                    nexttime = times[lessonIndex + 1];
-                    time = times[lessonIndex];
-                }
-
 
                 Calendar endcal = Calendar.getInstance();
                 Calendar startcal = Calendar.getInstance();
 
+                Log.d("myapp", subject + ": " + time + " ->" + lessontimes.get(j) + "j == " + j);
+
                 try {
                     startcal.setTime(new SimpleDateFormat("HH:mm").parse(time));
-                    endcal.setTime(new SimpleDateFormat("HH:mm").parse(times[lessonIndex + length]));
+                    endcal.setTime(new SimpleDateFormat("HH:mm").parse(lessontimes.get(j)));
                 } catch (ParseException e) {
                     e.printStackTrace();
                 }
 
-                if (length == 2 && subject.equals("Free Period")){
-                    try {
-                        startcal.setTime(new SimpleDateFormat("HH:mm").parse(time));
-                        endcal.setTime(new SimpleDateFormat("HH:mm").parse(nexttime));
-                    } catch (ParseException e) {
-                        e.printStackTrace();
-                    }
-                    Week.add(new Lesson(time, subject, teacher, room, 1, nexttime, whoElseFree, startcal, endcal, subjectColor));
-                try {
-                    startcal.setTime(new SimpleDateFormat("HH:mm").parse(nexttime));
-                    endcal.setTime(new SimpleDateFormat("HH:mm").parse(times[lessonIndex + length]));
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                }
-                    if (useFreeHighlight) {
-                        subjectColor = Color.rgb(19, 162, 215);
-                        useFreeHighlight = false;
-                    } else {
-                        subjectColor = Color.rgb(0, 153, 204);
-                        useFreeHighlight = true;
-                    }
-                Week.add(new Lesson(nexttime, subject, teacher, room, 1, nexttime, whoElseFree, startcal, endcal, subjectColor));
-                }
-                else {
-                    Lesson lesson = new Lesson(time, subject, teacher, room, length, nexttime, whoElseFree, startcal, endcal, subjectColor);
+                length = (int) Math.abs(startcal.getTimeInMillis() - endcal.getTimeInMillis()) / 60000;
 
-                    Week.add(lesson);
+
+
+                Lesson lesson = new Lesson(time, subject, teacher, room, length, whoElseFree, startcal, endcal, subjectColor);
+
+
+
+                switch (day) {
+                    case 1:
+                        Monday.add(lesson);
+
+                        break;
+                    case 2:
+                        Tuesday.add(lesson);
+                        break;
+                    case 3:
+                        Wednesday.add(lesson);
+                        break;
+                    case 4:
+                        Thursday.add(lesson);
+                        break;
+                    case 5:
+                        Friday.add(lesson);
+                        break;
                 }
-                lessonIndex += length;
-                if(lessonIndex>9){
+
+                if(j >= rows.size()-1){
+                    day += 1;
+                }
+
+
+                /*lessonIndex += rowspan;
+                if(lessonIndex>rows.size()){
                     lessonIndex=0;
-                }
+                }*/
 
             }
 
 
         }
-        int day = 1;
-        int count = 0;
-        for (Lesson les : Week) {
-            switch (day) {
-                case 1:
-                    Monday.add(les);
-                    break;
-                case 2:
-                    Tuesday.add(les);
-                    break;
-                case 3:
-                    Wednesday.add(les);
-                    break;
-                case 4:
-                    Thursday.add(les);
-                    break;
-                case 5:
-                    Friday.add(les);
-                    break;
+        Log.d("myapp", lessontimes.toString());
+
+        Monday = joinFreePeriods(Monday);
+        Tuesday = joinFreePeriods(Tuesday);
+        Wednesday = joinFreePeriods(Wednesday);
+        Thursday = joinFreePeriods(Thursday);
+        Friday = joinFreePeriods(Friday);
+
+        mondayFrees = getFrees(Monday);
+        tuesdayFrees = getFrees(Tuesday);
+        wednesdayFrees = getFrees(Wednesday);
+        thursdayFrees = getFrees(Thursday);
+        fridayFrees = getFrees(Friday);
+
+        FriendDatabaseObject value = new FriendDatabaseObject(mondayFrees,tuesdayFrees,wednesdayFrees,thursdayFrees,fridayFrees);
+        String key = doc.select("#content").text().split(",")[0];
+        Log.d("myapp", value.toString());
+        addToServer ats = new addToServer(key, value);
+        ats.execute();
+
+
+
+
+
+    }
+
+    public List<Lesson> joinFreePeriods(List<Lesson> dayofweek){
+
+        for (int i = 1; i < dayofweek.size(); i++){
+            Lesson currentLesson = dayofweek.get(i);
+            Lesson previousLesson = dayofweek.get(i-1);
+            if(currentLesson.getLessonName().equals("Free Period") && previousLesson.getLessonName().equals("Free Period") && currentLesson.getLength() + previousLesson.getLength() <= 55){
+                dayofweek.remove(i);
+                previousLesson.setLength(currentLesson.getLength() + previousLesson.getLength());
+                previousLesson.setEndTime(currentLesson.getEndTime());
+                dayofweek.set(i-1, previousLesson);
+                i-=1;
             }
-            count += les.getLength();
-            if (count == 10) {
-                day += 1;
-                count = 0;
+        }
+        return dayofweek;
+    }
+
+    public List<Calendar[]> getFrees(List<Lesson> dayofweek){
+        List<Calendar[]> x = new ArrayList<Calendar[]>();
+        for(Lesson les: dayofweek){
+            if(les.getLessonName().equals("Free Period")){
+                x.add(new Calendar[]{les.getStartTime(), les.getEndTime()});
             }
+        }
+        return x;
+    }
+
+    public void startDetailActivity(View v){
+        LinearLayout cont = (LinearLayout) v.findViewById(R.id.cont);
+        int i = Integer.parseInt(cont.getTag().toString());
+        clickedLesson = todaysLessons.get(i);
+        Intent detailIntent;
+        if(clickedLesson.getLessonName().equals("Free Period")){
+            detailIntent = new Intent(v.getContext(), Detail_FreePeriod_Activity.class);
 
         }
+        else{
+            detailIntent = new Intent(v.getContext(), DetailActivity.class);
+        }
+
+        startActivity(detailIntent);
+
+
+
     }
 
 
@@ -494,6 +631,11 @@ public class Timetable extends ActionBarActivity
         if (id == R.id.action_settings) {
             return true;
         }
+        if (id == R.id.action_add_friend) {
+            Intent intent = new Intent(root.getContext(), AddAFriend_Activity.class);
+            startActivity(intent);
+            return true;
+        }
         return super.onOptionsItemSelected(item);
     }
 
@@ -540,53 +682,195 @@ public class Timetable extends ActionBarActivity
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
 
-            View rootView = inflater.inflate(R.layout.fragment_timetable, container, false);
+            final View rootView = inflater.inflate(R.layout.fragment_timetable, container, false);
             Bundle args = getArguments();
 
-            Typeface robotoThin = Typeface.createFromAsset(rootView.getContext().getAssets(), "fonts/Roboto-Light.ttf");
+            Typeface robotoLight = Typeface.createFromAsset(rootView.getContext().getAssets(), "fonts/Roboto-Light.ttf");
+            Typeface robotoThin = Typeface.createFromAsset(rootView.getContext().getAssets(), "fonts/Roboto-Thin.ttf");
             TextView subtitle = (TextView) rootView.findViewById(R.id.time_left_texview);
             TextView subject = (TextView) rootView.findViewById(R.id.subject_textview);
             TextView prefix = (TextView) rootView.findViewById(R.id.prefix_textview);
 
-            prefix.setTypeface(robotoThin);
-            //subject.setTypeface(robotoThin);
-            subtitle.setTypeface(robotoThin);
+            prefix.setTypeface(robotoLight);
+
+            subtitle.setTypeface(robotoLight);
 
             int dayNum;
 
              dayNum = args.getInt(ARG_SECTION_NUMBER);
 
-            ArrayAdapter<Lesson> adapter = null;
+
             TextView dayHeader = (TextView) rootView.findViewById(R.id.day_textview);
             switch (dayNum) {
                 case 1:
-                    adapter = new MyListAdapter(getActivity().getApplicationContext(), R.layout.list_item_lesson, Monday);
+                    todaysLessons = Monday;
                     dayHeader.setText("MONDAY");
                     break;
                 case 2:
-                    adapter = new MyListAdapter(getActivity().getApplicationContext(), R.layout.list_item_lesson, Tuesday);
+                    todaysLessons = Tuesday;
                     dayHeader.setText("TUESDAY");
                     break;
                 case 3:
-                    adapter = new MyListAdapter(getActivity().getApplicationContext(), R.layout.list_item_lesson, Wednesday);
+                    todaysLessons = Wednesday;
                     dayHeader.setText("WEDNESDAY");
                     break;
                 case 4:
-                    adapter = new MyListAdapter(getActivity().getApplicationContext(), R.layout.list_item_lesson, Thursday);
+                    todaysLessons = Thursday;
                     dayHeader.setText("THURSDAY");
                     break;
                 case 5:
-                    adapter = new MyListAdapter(getActivity().getApplicationContext(), R.layout.list_item_lesson, Friday);
+                    todaysLessons = Friday;
                     dayHeader.setText("FRIDAY");
                     break;
 
             }
+            root = rootView;
+
             Quickview quickview = new Quickview(rootView);
             quickview.updateQuickview();
-            ListView list = (ListView) rootView.findViewById(R.id.timetable_listview);
+            /*
+            final ListView list = (ListView) rootView.findViewById(R.id.timetable_listview);
             list.setAdapter(adapter);
+            */
+
+
             LinearLayout qv = (LinearLayout) rootView.findViewById(R.id.Quick_view);
             qv.setBackgroundColor(Color.rgb(51,181,229));
+
+            LinearLayout timetableCont = (LinearLayout) rootView.findViewById(R.id.timetable_container);
+
+
+
+
+
+
+
+            for(int i = 0; i < times.size()-1; i++){
+                LayoutInflater vi = (LayoutInflater) rootView.getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+                View v = vi.inflate(R.layout.list_item_times, null);
+
+                TextView time = (TextView) v.findViewById(R.id.list_item_time_textview);
+                LinearLayout timetextviewcont = (LinearLayout) v.findViewById(R.id.time_textview_container);
+                ViewGroup.LayoutParams params = timetextviewcont.getLayoutParams();
+
+                time.setText(times.get(i));
+                params.height = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 72, getActivity().getResources().getDisplayMetrics());
+
+                if(times.get(i).equals("10:20")){
+                    params.height = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (float) 24, getActivity().getResources().getDisplayMetrics());
+                    time.setText("");
+                }
+                if(times.get(i).equals("12:30")){
+                    params.height = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (float)72/55*30, getActivity().getResources().getDisplayMetrics());
+                    time.setText("");
+                }
+                if(times.get(i).equals("13:00")){
+                    params.height = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (float)72/55*50, getActivity().getResources().getDisplayMetrics());
+                    time.setText(times.get(i));
+                }
+
+
+                time.setTypeface(robotoThin);
+
+
+                View insertPoint = rootView.findViewById(R.id.times_container);
+                ((ViewGroup) insertPoint).addView(v);
+            }
+
+
+
+            for(Lesson les : todaysLessons){
+                LayoutInflater vi = (LayoutInflater) rootView.getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+                View v = vi.inflate(R.layout.lesson, null);
+
+                TextView subjectTextView = (TextView) v.findViewById(R.id.list_item_subject_textview);
+                subjectTextView.setVisibility(View.VISIBLE);
+
+                LinearLayout cont = (LinearLayout) v.findViewById(R.id.cont);
+
+                LinearLayout subjectTextviewContainer = (LinearLayout) v.findViewById(R.id.list_item_subject_container_linearlayout);
+
+                ViewGroup.LayoutParams contParams = cont.getLayoutParams();
+                ViewGroup.LayoutParams subjectContParams = subjectTextviewContainer.getLayoutParams();
+
+
+                subjectTextView.setText(les.getLessonName());
+                subjectTextView.setTypeface(robotoThin);
+
+                float units = (float) les.getLength();
+
+
+                cont.setBackgroundColor(les.getBackgroundColor());
+
+                if(units < 50) {
+                    subjectTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, units/55*40);
+                }
+                else {
+                    subjectTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 30);
+                }
+                subjectTextView.setLineSpacing(-10, 1);
+
+                LinearLayout.LayoutParams textParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.FILL_PARENT);
+                textParams.setMargins(5, -10, 0, 0);
+                subjectTextView.setLayoutParams(textParams);
+
+
+
+
+
+                contParams.height = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (float)units/55*72, v.getContext().getResources().getDisplayMetrics());
+                if(les.getLength() > 55){
+                    units = 55;
+                }
+
+                subjectContParams.height=(int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (float)units/55*72, v.getContext().getResources().getDisplayMetrics());
+
+
+                if (les.getLessonName().equals("Free Period")){
+                    if(les.getLength()>=55) {
+                        SpannableString txt = new SpannableString("Free Period\n With Elliot, Mckenzie...");
+                        txt.setSpan(new RelativeSizeSpan(0.5f), 11, txt.length(), 0);
+                        subjectTextView.setText(txt, TextView.BufferType.SPANNABLE);
+                        subjectTextView.setLineSpacing(0, 1);
+
+                        textParams.setMargins(5, 0, 0, 0);
+
+                        subjectTextView.setLayoutParams(textParams);
+                    }
+                }
+
+
+                if (les.getLessonName().equals("Break")) {
+                    cont.setBackgroundColor(Color.rgb(51,181,229));
+                    contParams.height=(int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 24, getActivity().getResources().getDisplayMetrics());
+
+
+                    subjectContParams.height=(int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 24, getActivity().getResources().getDisplayMetrics());
+                    subjectTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+
+
+
+                }
+                if(les.getLessonName().equals("Lunch")){
+                    cont.setBackgroundColor(Color.rgb(51,181,229));
+
+                }
+
+
+                cont.setTag(todaysLessons.indexOf(les));
+                View insertPoint = rootView.findViewById(R.id.timetable_container);
+                ((ViewGroup) insertPoint).addView(v);
+
+
+
+            }
+
+
+
+
+
+
+
             return rootView;
         }
 
@@ -725,3 +1009,24 @@ class Quickview {
 
 
 }
+
+class addToServer extends AsyncTask<Void, Void, Void> {
+    FriendDatabaseObject y;
+    String key;
+    public addToServer(String key, FriendDatabaseObject y){this.y = y; this.key = key;}
+
+    protected Void doInBackground(Void... x){
+
+
+
+        Client client = new OrchestrateClient("3e21631e-63cf-4b9e-b227-beabb7eab90a");
+
+        final KvMetadata kvMetadata =
+                client.kv("Frees", key).put(y).get();
+
+        return null;
+    }
+
+}
+
+

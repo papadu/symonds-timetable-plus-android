@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="85dp"
+    android:layout_height="wrap_content"
+    android:background="#33b5e5"
+    android:id="@+id/list_item_time_container_linearlayout"
+    android:focusable="false">
+
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="72dp"
+            android:gravity="center_vertical|center_horizontal"
+            android:id="@+id/time_textview_container">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="10:40"
+                android:id="@+id/list_item_time_textview"
+                android:textSize="27sp"
+                android:textColor="#ffffff"
+                android:layout_gravity="center" />
+        </LinearLayout>
+
+        <ImageView
+            android:layout_width="84dp"
+            android:layout_height="1px"
+            android:id="@+id/imageView"
+            android:background="#4ed8d9d9"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="-1px"
+            android:layout_alignBottom="@+id/time_textview_container" />
+
+        <ImageView
+            android:layout_width="84dp"
+            android:layout_height="1px"
+            android:id="@+id/imageView2"
+            android:background="#4ed8d9d9"
+            android:layout_gravity="center_horizontal"
+            android:layout_alignTop="@+id/time_textview_container" />
+
+    </RelativeLayout>
+</LinearLayout>
