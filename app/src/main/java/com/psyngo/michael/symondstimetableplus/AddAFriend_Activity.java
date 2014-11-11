@@ -14,15 +14,20 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import io.orchestrate.client.Client;
 import io.orchestrate.client.KvList;
 import io.orchestrate.client.KvObject;
 import io.orchestrate.client.OrchestrateClient;
+import io.orchestrate.client.ResponseAdapter;
 
 
 public class AddAFriend_Activity extends ActionBarActivity {
@@ -30,6 +35,7 @@ public class AddAFriend_Activity extends ActionBarActivity {
 
     public static List<FriendList> friends = new ArrayList<FriendList>();
     static List<String> friendkeys = new ArrayList<String>();
+    static boolean asyncRunning = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,29 +53,12 @@ public class AddAFriend_Activity extends ActionBarActivity {
                 String clickedKey;
                 TextView clicked = (TextView) view.findViewById(R.id.nametextView);
                 clickedKey = clicked.getText().toString().toUpperCase();
-                Log.d("myapp", clickedKey);
-                ImageView i = (ImageView) view.findViewById(R.id.imageView);
-                if(view.getTag().equals(0)){
-                    i.setBackgroundDrawable(getResources().getDrawable(R.drawable.ic_action_done));
-                    view.setTag(1);
-                    getName n = new getName(ctx, clickedKey);
+                if(!asyncRunning) {
+                    getName n = new getName(ctx, clickedKey, view);
                     n.execute();
-
-
-
                 }
-                else{
-                    i.setBackgroundDrawable(getResources().getDrawable(R.drawable.ic_action_add_person));
-                    view.setTag(0);
-                    for(FriendList fl : friends){
-                        if(fl.getKey().equals(clickedKey)){
-                            friends.remove(fl);
-                            friendkeys.remove(clickedKey);
 
-                        }
-                    }
-                    Log.d("myapp", friends.toString());
-                }
+
 
 
             }
@@ -186,37 +175,91 @@ class nameListAdapter extends ArrayAdapter<String> {
     }
 }
 
-class getName extends AsyncTask<Void, Void, FriendDatabaseObject>{
+class getName extends AsyncTask<Void, Void, Void>{
 
     Context ctx;
     String key;
-    public getName(Context ctx, String key){
+    View view;
+    ImageView i;
+    ProgressBar p;
 
+    public getName(Context ctx, String key, View view){
+        this.view = view;
         this.ctx = ctx;
         this.key = key;
+        i = (ImageView) view.findViewById(R.id.imageView);
+        p = (ProgressBar) view.findViewById(R.id.progressBar);
     }
 
-    protected FriendDatabaseObject doInBackground(Void... params){
+    protected void onPreExecute(){
+        i.setVisibility(View.INVISIBLE);
+        p.setVisibility(View.VISIBLE);
+        AddAFriend_Activity.asyncRunning = true;
+    }
 
 
-        Client client = new OrchestrateClient("3e21631e-63cf-4b9e-b227-beabb7eab90a");
-        KvObject<FriendDatabaseObject> object =
-                client.kv("Frees", key)
-                        .get(FriendDatabaseObject.class)
-                        .get();
-        if (object == null) {
-            System.out.println("'someKey' does not exist.");
-        } else {
-            FriendDatabaseObject data = object.getValue();
-            return data;
+
+    protected Void doInBackground(Void... params){
+
+
+
+        if(view.getTag().equals(0)){
+
+
+            Client client = new OrchestrateClient("3e21631e-63cf-4b9e-b227-beabb7eab90a");
+
+                    client.kv("Frees", key)
+                            .get(FriendDatabaseObject.class)
+                            .on(new ResponseAdapter<KvObject<FriendDatabaseObject>>() {
+                                @Override
+                                public void onFailure(final Throwable error) {
+                                    Toast.makeText(ctx, "Error: " + error.toString() + " (Tell Michael about this)", Toast.LENGTH_LONG);
+                                }
+
+                                @Override
+                                public void onSuccess(final KvObject<FriendDatabaseObject> object) {
+                                    if (object == null) {
+                                        Toast.makeText(ctx, "Error: " + "404", Toast.LENGTH_LONG);
+                                    }
+                                    Log.d("myapp", "sucess");
+
+                                    FriendDatabaseObject data = object.getValue();
+                                    AddAFriend_Activity.friends.add(new FriendList(key, data));
+                                    AddAFriend_Activity.friendkeys.add(key);
+                                    view.setTag(1);
+                                    i.setBackgroundDrawable(ctx.getResources().getDrawable(R.drawable.ic_action_done));
+                                }
+                            }).get(20, TimeUnit.SECONDS);
+
+
+
+
         }
+        else{
+            i.setBackgroundDrawable(ctx.getResources().getDrawable(R.drawable.ic_action_add_person));
+            view.setTag(0);
+
+            for(Iterator<FriendList> fl = AddAFriend_Activity.friends.iterator(); fl.hasNext();){
+                FriendList f = fl.next();
+                if(f.getKey().equals(key)){
+                    fl.remove();
+                    AddAFriend_Activity.friendkeys.remove(key);
+                }
+            }
+
+        }
+
+
+
         return null;
 
     }
 
-    protected void onPostExecute(FriendDatabaseObject arg){
-       AddAFriend_Activity.friends.add(new FriendList(key, arg));
-        Log.d("myapp", AddAFriend_Activity.friends.toString());
+    protected void onPostExecute(Void a){
+
+        i.setVisibility(View.VISIBLE);
+        p.setVisibility(View.INVISIBLE);
+        AddAFriend_Activity.asyncRunning = false;
     }
 }
 

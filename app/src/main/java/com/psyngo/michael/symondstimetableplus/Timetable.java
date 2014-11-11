@@ -32,7 +32,9 @@ import android.view.animation.DecelerateInterpolator;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import org.apache.commons.lang3.text.WordUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -49,6 +51,7 @@ import java.util.List;
 import io.orchestrate.client.Client;
 import io.orchestrate.client.KvMetadata;
 import io.orchestrate.client.OrchestrateClient;
+import io.orchestrate.client.ResponseAdapter;
 
 
 public class Timetable extends ActionBarActivity
@@ -73,11 +76,11 @@ public class Timetable extends ActionBarActivity
 
     static boolean happeningNow = true;
     static String happeningNowprefixText = "Happening now";
-    static String happeningNowsubjectText;
-    static String happeningNowsubtitleText;
+    static String happeningNowsubjectText = "";
+    static String happeningNowsubtitleText = "";
     static String nextLessonprefixText = "Your next lesson is";
-    static String NextLessonsubjectText;
-    static String NextLessonsubtitleText;
+    static String NextLessonsubjectText = "";
+    static String NextLessonsubtitleText = "";
 
     static List<String> times = new ArrayList<String>(Arrays.asList("08:30", "09:25", "10:20", "10:40", "11:35", "12:30", "13:00", "13:50", "14:45", "15:40", "16:35"));
 
@@ -135,6 +138,12 @@ public class Timetable extends ActionBarActivity
     }
 
     public void addFriends(){
+        Monday = deleteFrees(Monday);
+        Tuesday = deleteFrees(Tuesday);
+        Wednesday = deleteFrees(Wednesday);
+        Thursday = deleteFrees(Thursday);
+        Friday = deleteFrees(Friday);
+
         for(FriendList fl : AddAFriend_Activity.friends){
             Monday = addFriendsFreePeriods(Monday, fl.getValue().getMonday(), fl.getKey());
             Tuesday = addFriendsFreePeriods(Tuesday, fl.getValue().getTuesday(), fl.getKey());
@@ -147,8 +156,9 @@ public class Timetable extends ActionBarActivity
 
     public List<Lesson> addFriendsFreePeriods(List<Lesson> day, List<Calendar[]> friendsDay, String name){
         for (Lesson les: day){
+
             for(Calendar[] free : friendsDay) {
-                if (les.getLessonName().equals("Free Period") && les.getStartTime().getTime().getTime() <= free[0].getTime().getTime() && les.getEndTime().getTime().getTime() >= free[1].getTime().getTime()){
+                if (les.getLessonName().equals("Free Period") && les.getStartTime().getTime().getTime() >= free[0].getTime().getTime() && les.getEndTime().getTime().getTime() <= free[1].getTime().getTime()){
                     List<String> whosFree = les.getWhoElseFree();
                     whosFree.add(name);
                     les.setWhoElseFree(whosFree);
@@ -157,6 +167,13 @@ public class Timetable extends ActionBarActivity
             }
         }
 
+        return day;
+    }
+
+    public List<Lesson> deleteFrees(List<Lesson> day){
+        for (Lesson les: day){
+            les.setWhoElseFree(new ArrayList<String>());
+        }
         return day;
     }
 
@@ -516,7 +533,7 @@ public class Timetable extends ActionBarActivity
         FriendDatabaseObject value = new FriendDatabaseObject(mondayFrees,tuesdayFrees,wednesdayFrees,thursdayFrees,fridayFrees);
         String key = doc.select("#content").text().split(",")[0];
         Log.d("myapp", value.toString());
-        addToServer ats = new addToServer(key, value);
+        addToServer ats = new addToServer(key, value, getApplicationContext());
         ats.execute();
 
 
@@ -558,6 +575,9 @@ public class Timetable extends ActionBarActivity
         Intent detailIntent;
         if(clickedLesson.getLessonName().equals("Free Period")){
             detailIntent = new Intent(v.getContext(), Detail_FreePeriod_Activity.class);
+            for(String s : clickedLesson.getWhoElseFree()) {
+                Log.d("xxxxxx", s);
+            }
 
         }
         else{
@@ -828,7 +848,26 @@ public class Timetable extends ActionBarActivity
 
                 if (les.getLessonName().equals("Free Period")){
                     if(les.getLength()>=55) {
-                        SpannableString txt = new SpannableString("Free Period\n With Elliot, Mckenzie...");
+
+
+
+                        String sub = "";
+                        if(les.getWhoElseFree().size()==0){
+                            sub = "Noone.";
+                        }
+                        if(les.getWhoElseFree().size()==1){
+                            sub = WordUtils.capitalizeFully(les.getWhoElseFree().get(0).split(" ")[0]) + ".";
+                        }
+                        if(les.getWhoElseFree().size()==2){
+                            sub = WordUtils.capitalizeFully(les.getWhoElseFree().get(0).split(" ")[0]) + " and " + WordUtils.capitalizeFully(les.getWhoElseFree().get(1).split(" ")[0]) + ".";
+                        }
+                        if(les.getWhoElseFree().size()>2){
+                            sub = WordUtils.capitalizeFully(les.getWhoElseFree().get(0).split(" ")[0]) + ", " +
+                                    WordUtils.capitalizeFully(les.getWhoElseFree().get(1).split(" ")[0]) + "...";
+                        }
+
+
+                        SpannableString txt = new SpannableString("Free Period\n With " + sub);
                         txt.setSpan(new RelativeSizeSpan(0.5f), 11, txt.length(), 0);
                         subjectTextView.setText(txt, TextView.BufferType.SPANNABLE);
                         subjectTextView.setLineSpacing(0, 1);
@@ -943,6 +982,7 @@ class Quickview {
 
 
 
+
                 Date dt = cal.getTime();
                 long currenttime = dt.getTime();
                 if (currenttime > les.getStartTime().getTime().getTime() && currenttime < les.getEndTime().getTime().getTime()) {
@@ -953,7 +993,22 @@ class Quickview {
 
                     Timetable.happeningNowsubjectText = les.getLessonName();
                     if(les.getLessonName().equals("Free Period")){
-                        Timetable.happeningNowsubtitleText = "With Mckenzie, Elliot and 5 others";
+                        String sub = "With ";
+                        if(les.getWhoElseFree().size()==0){
+                            sub += "Noone.";
+                        }
+                        if(les.getWhoElseFree().size()==1){
+                            sub += WordUtils.capitalizeFully(les.getWhoElseFree().get(0).split(" ")[0]) + ".";
+                        }
+                        if(les.getWhoElseFree().size()==2){
+                            sub += WordUtils.capitalizeFully(les.getWhoElseFree().get(0).split(" ")[0]) + " and " + WordUtils.capitalizeFully(les.getWhoElseFree().get(1).split(" ")[0]) + ".";
+                        }
+                        if(les.getWhoElseFree().size()>2){
+                            sub += WordUtils.capitalizeFully(les.getWhoElseFree().get(0).split(" ")[0]) + ", " +
+                                    WordUtils.capitalizeFully(les.getWhoElseFree().get(1).split(" ")[0]) + " and " +
+                                    (les.getWhoElseFree().size() - 2) + " others.";
+                        }
+                        Timetable.happeningNowsubtitleText = sub;
 
                     }
                     else {
@@ -983,6 +1038,25 @@ class Quickview {
                 }
 
             }
+            if(Timetable.happeningNowsubjectText.equals("") && Timetable.NextLessonsubjectText.equals("")){
+                Timetable.happeningNowsubjectText = "Nothing.";
+                Timetable.happeningNowsubtitleText = "You're finished for the day.";
+                Timetable.NextLessonsubjectText = "Nothing.";
+                Timetable.NextLessonsubtitleText = "You're finished for the day.";
+            }
+            else{
+                if(Timetable.happeningNowsubjectText.equals("")){
+                    Timetable.happeningNowsubjectText = "Nothing.";
+                    Timetable.happeningNowsubtitleText = "College hasn't started yet.";
+                }
+                if(Timetable.NextLessonsubjectText.equals("")){
+                    Timetable.NextLessonsubjectText = "Nothing.";
+                    Timetable.NextLessonsubtitleText = "You're finished for the day.";
+                }
+            }
+
+
+
 
             if(Timetable.happeningNow){
                 topTextView.setText(Timetable.happeningNowprefixText);
@@ -1013,7 +1087,8 @@ class Quickview {
 class addToServer extends AsyncTask<Void, Void, Void> {
     FriendDatabaseObject y;
     String key;
-    public addToServer(String key, FriendDatabaseObject y){this.y = y; this.key = key;}
+    Context ctx;
+    public addToServer(String key, FriendDatabaseObject y, Context ctx){this.y = y; this.key = key; this.ctx = ctx;}
 
     protected Void doInBackground(Void... x){
 
@@ -1021,8 +1096,19 @@ class addToServer extends AsyncTask<Void, Void, Void> {
 
         Client client = new OrchestrateClient("3e21631e-63cf-4b9e-b227-beabb7eab90a");
 
-        final KvMetadata kvMetadata =
-                client.kv("Frees", key).put(y).get();
+
+        client.kv("Frees", key).put(y).on(new ResponseAdapter<KvMetadata>() {
+            @Override
+            public void onSuccess(KvMetadata object) {
+                super.onSuccess(object);
+            }
+
+            @Override
+            public void onFailure(Throwable error) {
+                super.onFailure(error);
+                Toast.makeText(ctx, "Error: " + error.toString() + "(Tell Michael about this)", Toast.LENGTH_LONG);
+            }
+        });
 
         return null;
     }

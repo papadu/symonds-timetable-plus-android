@@ -83,8 +83,10 @@ public class LoginScreen extends ActionBarActivity {
         EditText usernameEdit = (EditText) findViewById(R.id.username);
         EditText passwordEdit = (EditText) findViewById(R.id.password);
 
+
         String username = usernameEdit.getText().toString();
         String password = passwordEdit.getText().toString();
+
 
         String ProcessLoginForm = "true";
         String signin = "Sign In";

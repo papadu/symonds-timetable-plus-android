@@ -29,7 +29,7 @@
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceMedium"
             android:text="at 09:25"
-            android:id="@+id/textView3"
+            android:id="@+id/timeTV"
             android:textColor="#ffffff"
             android:layout_marginLeft="5dp" />
     </LinearLayout>
@@ -45,6 +45,6 @@
     <ListView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/listView" />
+        android:id="@+id/whoElseFreeListview" />
 
 </LinearLayout>

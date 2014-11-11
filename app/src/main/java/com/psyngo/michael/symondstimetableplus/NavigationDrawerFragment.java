@@ -55,9 +55,11 @@ public class NavigationDrawerFragment extends Fragment {
     private ListView mDrawerListView;
     private View mFragmentContainerView;
 
-    private int mCurrentSelectedPosition = 0;
+    static private int mCurrentSelectedPosition = 0;
     private boolean mFromSavedInstanceState;
     private boolean mUserLearnedDrawer;
+
+    private static boolean firstOpen = true;
 
     public NavigationDrawerFragment() {
     }
@@ -68,12 +70,15 @@ public class NavigationDrawerFragment extends Fragment {
 
         // Read in the flag indicating whether or not the user has demonstrated awareness of the
         // drawer. See PREF_USER_LEARNED_DRAWER for details.
-        Calendar calendar = Calendar.getInstance();
-        int dayNum = calendar.get(Calendar.DAY_OF_WEEK) - 2;
-        if (dayNum > 4 || dayNum < 0) {
-            dayNum = 0;
+        if(firstOpen) {
+            Calendar calendar = Calendar.getInstance();
+            int dayNum = calendar.get(Calendar.DAY_OF_WEEK) - 2;
+            if (dayNum > 4 || dayNum < 0) {
+                dayNum = 0;
+            }
+            mCurrentSelectedPosition = dayNum;
+            firstOpen = false;
         }
-        mCurrentSelectedPosition = dayNum;
 
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getActivity());
         mUserLearnedDrawer = sp.getBoolean(PREF_USER_LEARNED_DRAWER, false);
@@ -196,6 +201,7 @@ public class NavigationDrawerFragment extends Fragment {
 
     private void selectItem(int position) {
         mCurrentSelectedPosition = position;
+
         if (mDrawerListView != null) {
             mDrawerListView.setItemChecked(position, true);
         }
