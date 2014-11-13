@@ -32,7 +32,6 @@ import android.view.animation.DecelerateInterpolator;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import org.apache.commons.lang3.text.WordUtils;
 import org.jsoup.Jsoup;
@@ -1093,22 +1092,26 @@ class addToServer extends AsyncTask<Void, Void, Void> {
     protected Void doInBackground(Void... x){
 
 
+        try {
+            Client client = new OrchestrateClient("3e21631e-63cf-4b9e-b227-beabb7eab90a");
 
-        Client client = new OrchestrateClient("3e21631e-63cf-4b9e-b227-beabb7eab90a");
 
+            client.kv("Frees", key).put(y).on(new ResponseAdapter<KvMetadata>() {
+                @Override
+                public void onSuccess(KvMetadata object) {
+                    super.onSuccess(object);
+                }
 
-        client.kv("Frees", key).put(y).on(new ResponseAdapter<KvMetadata>() {
-            @Override
-            public void onSuccess(KvMetadata object) {
-                super.onSuccess(object);
-            }
+                @Override
+                public void onFailure(Throwable error) {
+                    super.onFailure(error);
 
-            @Override
-            public void onFailure(Throwable error) {
-                super.onFailure(error);
-                Toast.makeText(ctx, "Error: " + error.toString() + "(Tell Michael about this)", Toast.LENGTH_LONG);
-            }
-        });
+                }
+            });
+        }
+        catch(Throwable e){
+            e.printStackTrace();
+        }
 
         return null;
     }

@@ -5,6 +5,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.util.Log;
+import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.apache.http.HttpResponse;
@@ -27,15 +31,27 @@ import java.util.List;
 public class GetSymondsTimetable extends AsyncTask<String, Void, String> {
 
     private Context context;
-    public GetSymondsTimetable(Context context){
+    private View rootview;
+    public GetSymondsTimetable(Context context, View rootview){
         this.context = context;
+        this.rootview = rootview;
     }
     String timetableHTMLstring = "";
     int responseCode;
     String title;
+    RelativeLayout loadingLayout;
+    TextView loadingText;
+    LinearLayout loginLinear;
+    Activity a;
 
     protected void onPreExecute(){
-        ((Activity) context).setProgressBarIndeterminateVisibility(true);
+        loadingLayout = (RelativeLayout) rootview.findViewById(R.id.LoadingRelLayout);
+        loadingText = (TextView) rootview.findViewById(R.id.LoadingtextView);
+        loginLinear = (LinearLayout) rootview.findViewById(R.id.loginLinearLayout);
+        a = (Activity) rootview.getContext();
+        loginLinear.setVisibility(View.INVISIBLE);
+        loadingLayout.setVisibility(View.VISIBLE);
+        loadingText.setText("Logging in...");
     }
 
     protected String doInBackground(String... params) {
@@ -59,7 +75,14 @@ public class GetSymondsTimetable extends AsyncTask<String, Void, String> {
             HttpResponse response = httpclient.execute(httppost);
 
 
+            a.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
 
+                        loadingText.setText("Getting Timetable...");
+
+                }
+            });
 
 
 
@@ -99,10 +122,12 @@ public class GetSymondsTimetable extends AsyncTask<String, Void, String> {
     }
 
     protected void onPostExecute(String arg){
-        ((Activity) context).setProgressBarIndeterminateVisibility(false);
+        loadingLayout.setVisibility(View.INVISIBLE);
         if(responseCode == 200) {
             if (title.equals("Student Intranet | Sign In")){
                 Toast.makeText(context, "Username or password incorrect.", Toast.LENGTH_LONG).show();
+                loginLinear.setVisibility(View.VISIBLE);
+
             }
             else{
 
@@ -113,10 +138,12 @@ public class GetSymondsTimetable extends AsyncTask<String, Void, String> {
         }
         else if(responseCode==0){
             Toast.makeText(context, "Not connected to the Internet", Toast.LENGTH_LONG).show();
+            loginLinear.setVisibility(View.VISIBLE);
 
         }
         else{
             Toast.makeText(context, "Error: " + responseCode, Toast.LENGTH_LONG).show();
+            loginLinear.setVisibility(View.VISIBLE);
         }
     }
 

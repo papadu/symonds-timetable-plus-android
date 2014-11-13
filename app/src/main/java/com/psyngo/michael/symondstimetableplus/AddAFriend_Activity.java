@@ -43,7 +43,10 @@ public class AddAFriend_Activity extends ActionBarActivity {
         setContentView(R.layout.activity_add_afriend_);
         ListView addFriendList = (ListView) findViewById(R.id.addFriendListview);
         final Context ctx = getApplicationContext();
-        getListOfNames l = new getListOfNames(addFriendList, ctx);
+
+        ProgressBar pb = (ProgressBar) findViewById(R.id.ListViewProgressBar);
+
+        getListOfNames l = new getListOfNames(addFriendList, ctx, pb);
         l.execute();
 
 
@@ -97,36 +100,81 @@ public class AddAFriend_Activity extends ActionBarActivity {
 class getListOfNames extends AsyncTask<Void, Void, ArrayList<String>>{
     ListView lv;
     Context ctx;
-    public getListOfNames(ListView lv, Context ctx){
+    ProgressBar pb;
+    boolean pinged = false;
+    boolean success = true;
+    public getListOfNames(ListView lv, Context ctx, ProgressBar pb){
         this.lv = lv;
         this.ctx = ctx;
+        this.pb = pb;
+    }
+
+    protected void onPreExecute(){
+        pb.setVisibility(View.VISIBLE);
+        lv.setVisibility(View.INVISIBLE);
+
+
     }
 
     protected ArrayList<String> doInBackground(Void... params){
 
 
         Client client = new OrchestrateClient("3e21631e-63cf-4b9e-b227-beabb7eab90a");
-        KvList<FriendDatabaseObject> results =
-                client.listCollection("Frees")
-                        .withValues(Boolean.FALSE)
-                        .get(FriendDatabaseObject.class)
-                        .get();
-        ArrayList<String> names = new ArrayList<String>();
-        for (KvObject<FriendDatabaseObject> kvObject : results) {
-            // do something with the object
 
-            names.add(kvObject.getKey());
+        try {
+            client.ping();
+            pinged = true;
+        } catch (Throwable e) {
+            e.printStackTrace();
+            pinged = false;
+
+
+        }
+        ArrayList<String> names = new ArrayList<String>();
+        if(pinged) {
+            try {
+                KvList<FriendDatabaseObject> results =
+                        client.listCollection("Frees")
+                                .limit(40)
+                                .withValues(Boolean.FALSE)
+                                .get(FriendDatabaseObject.class)
+                                .get(20, TimeUnit.SECONDS);
+
+
+                for (KvObject<FriendDatabaseObject> kvObject : results) {
+                    // do something with the object
+
+                    names.add(kvObject.getKey());
+                }
+                success = true;
+            } catch (Throwable e) {
+                e.printStackTrace();
+                success = false;
+            }
         }
 
         return names;
     }
 
     protected void onPostExecute(ArrayList<String> arg){
-        nameListAdapter adapter = new nameListAdapter(ctx, R.layout.simple, arg);
-        for(FriendList fl : AddAFriend_Activity.friends){
-            AddAFriend_Activity.friendkeys.add(fl.getKey());
+        if(!pinged){
+            Toast.makeText(ctx, "Cannot reach server", Toast.LENGTH_LONG).show();
+
+
         }
-        lv.setAdapter(adapter);
+        if(success) {
+            nameListAdapter adapter = new nameListAdapter(ctx, R.layout.simple, arg);
+            for (FriendList fl : AddAFriend_Activity.friends) {
+                AddAFriend_Activity.friendkeys.add(fl.getKey());
+            }
+            lv.setAdapter(adapter);
+
+            lv.setVisibility(View.VISIBLE);
+        }
+        else{
+            Toast.makeText(ctx, "Operation Timed out, try again.", Toast.LENGTH_LONG).show();
+        }
+        pb.setVisibility(View.INVISIBLE);
 
     }
 }
@@ -182,13 +230,15 @@ class getName extends AsyncTask<Void, Void, Void>{
     View view;
     ImageView i;
     ProgressBar p;
+    boolean pinged = false;
+    boolean success = true;
 
     public getName(Context ctx, String key, View view){
         this.view = view;
         this.ctx = ctx;
         this.key = key;
         i = (ImageView) view.findViewById(R.id.imageView);
-        p = (ProgressBar) view.findViewById(R.id.progressBar);
+        p = (ProgressBar) view.findViewById(R.id.LoginprogressBar);
     }
 
     protected void onPreExecute(){
@@ -208,12 +258,25 @@ class getName extends AsyncTask<Void, Void, Void>{
 
             Client client = new OrchestrateClient("3e21631e-63cf-4b9e-b227-beabb7eab90a");
 
+
+            try {
+                client.ping();
+                pinged = true;
+            } catch (Throwable e) {
+                e.printStackTrace();
+                pinged = false;
+
+
+            }
+
+            try {
+                if (pinged) {
                     client.kv("Frees", key)
                             .get(FriendDatabaseObject.class)
                             .on(new ResponseAdapter<KvObject<FriendDatabaseObject>>() {
                                 @Override
                                 public void onFailure(final Throwable error) {
-                                    Toast.makeText(ctx, "Error: " + error.toString() + " (Tell Michael about this)", Toast.LENGTH_LONG);
+                                    Toast.makeText(ctx, "Error: " + error.toString() + " (Tell Michael about this)", Toast.LENGTH_LONG).show();
                                 }
 
                                 @Override
@@ -221,15 +284,23 @@ class getName extends AsyncTask<Void, Void, Void>{
                                     if (object == null) {
                                         Toast.makeText(ctx, "Error: " + "404", Toast.LENGTH_LONG);
                                     }
-                                    Log.d("myapp", "sucess");
+
 
                                     FriendDatabaseObject data = object.getValue();
                                     AddAFriend_Activity.friends.add(new FriendList(key, data));
                                     AddAFriend_Activity.friendkeys.add(key);
                                     view.setTag(1);
                                     i.setBackgroundDrawable(ctx.getResources().getDrawable(R.drawable.ic_action_done));
+                                    Log.d("myapp", "sucess");
+                                    success = true;
                                 }
-                            }).get(20, TimeUnit.SECONDS);
+                            }).get(10, TimeUnit.SECONDS);
+                }
+            }
+            catch (Throwable e){
+                e.printStackTrace();
+                success = false;
+            }
 
 
 
@@ -256,7 +327,12 @@ class getName extends AsyncTask<Void, Void, Void>{
     }
 
     protected void onPostExecute(Void a){
-
+        if(!pinged){
+            Toast.makeText(ctx, "Cannot reach server", Toast.LENGTH_SHORT).show();
+        }
+        if(!success){
+            Toast.makeText(ctx, "Operation timed out, try again.", Toast.LENGTH_SHORT).show();
+        }
         i.setVisibility(View.VISIBLE);
         p.setVisibility(View.INVISIBLE);
         AddAFriend_Activity.asyncRunning = false;

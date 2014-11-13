@@ -9,7 +9,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -21,7 +20,7 @@ public class LoginScreen extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
+
         setContentView(R.layout.activity_login_screen);
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
@@ -82,15 +81,15 @@ public class LoginScreen extends ActionBarActivity {
     public void onSubmit(View view) {
         EditText usernameEdit = (EditText) findViewById(R.id.username);
         EditText passwordEdit = (EditText) findViewById(R.id.password);
+        View root = view.getRootView();
 
 
         String username = usernameEdit.getText().toString();
         String password = passwordEdit.getText().toString();
 
-
         String ProcessLoginForm = "true";
         String signin = "Sign In";
-        GetSymondsTimetable post = new GetSymondsTimetable(this);
+        GetSymondsTimetable post = new GetSymondsTimetable(this, root);
         post.execute(ProcessLoginForm, username, password, signin);
 
 

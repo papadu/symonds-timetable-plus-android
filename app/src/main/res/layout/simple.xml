@@ -40,7 +40,7 @@
             <ProgressBar
                 android:layout_width="30dp"
                 android:layout_height="wrap_content"
-                android:id="@+id/progressBar"
+                android:id="@+id/LoginprogressBar"
                 android:layout_gravity="center_vertical|right"
                 android:visibility="invisible" />
         </FrameLayout>
