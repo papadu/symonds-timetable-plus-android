@@ -80,18 +80,19 @@
     </content>
     <orderEntry type="jdk" jdkName="Android API 19 Platform" jdkType="Android SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" exported="" name="jackson-databind-2.3.1" level="project" />
-    <orderEntry type="library" exported="" name="support-v4-20.0.0" level="project" />
-    <orderEntry type="library" exported="" name="commons-lang3-3.0" level="project" />
     <orderEntry type="library" exported="" name="jsoup-1.8.1" level="project" />
     <orderEntry type="library" exported="" name="grizzly-framework-2.3.11" level="project" />
     <orderEntry type="library" exported="" name="grizzly-http-2.3.11" level="project" />
     <orderEntry type="library" exported="" name="orchestrate-client-0.5.0" level="project" />
-    <orderEntry type="library" exported="" name="jackson-annotations-2.3.0" level="project" />
-    <orderEntry type="library" exported="" name="slf4j-api-1.7.6" level="project" />
     <orderEntry type="library" exported="" name="jackson-core-2.3.1" level="project" />
+    <orderEntry type="library" exported="" name="play-services-6.1.71" level="project" />
     <orderEntry type="library" exported="" name="support-annotations-20.0.0" level="project" />
     <orderEntry type="library" exported="" name="appcompat-v7-20.0.0" level="project" />
+    <orderEntry type="library" exported="" name="jackson-databind-2.3.1" level="project" />
+    <orderEntry type="library" exported="" name="support-v4-20.0.0" level="project" />
+    <orderEntry type="library" exported="" name="commons-lang3-3.0" level="project" />
+    <orderEntry type="library" exported="" name="jackson-annotations-2.3.0" level="project" />
+    <orderEntry type="library" exported="" name="slf4j-api-1.7.6" level="project" />
   </component>
 </module>
 

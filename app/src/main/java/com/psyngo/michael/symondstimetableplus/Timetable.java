@@ -33,6 +33,8 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.google.android.gms.analytics.GoogleAnalytics;
+
 import org.apache.commons.lang3.text.WordUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -103,7 +105,12 @@ public class Timetable extends ActionBarActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        ((MyApplication) getApplication()).getTracker(MyApplication.TrackerName.APP_TRACKER);
+
+
         setContentView(R.layout.activity_timetable);
+
+
 
 
         if(!started) {
@@ -137,6 +144,19 @@ public class Timetable extends ActionBarActivity
                 R.id.navigation_drawer,
                 (DrawerLayout) findViewById(R.id.drawer_layout));
     }
+
+    @Override
+    protected void onStart(){
+        super.onStart();
+        GoogleAnalytics.getInstance(this).reportActivityStart(this);
+    }
+
+    @Override
+    protected void onStop(){
+        super.onStop();
+        GoogleAnalytics.getInstance(this).reportActivityStop(this);
+    }
+
 
     public void addFriends(){
         Monday = deleteFrees(Monday);
