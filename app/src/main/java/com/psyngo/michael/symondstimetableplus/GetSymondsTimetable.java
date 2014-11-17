@@ -1,8 +1,10 @@
 package com.psyngo.michael.symondstimetableplus;
 
 import android.app.Activity;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.os.AsyncTask;
 import android.util.Log;
 import android.view.View;
@@ -43,6 +45,9 @@ public class GetSymondsTimetable extends AsyncTask<String, Void, String> {
     TextView loadingText;
     LinearLayout loginLinear;
     Activity a;
+    String username;
+    String password;
+    DataHandler handler;
 
     protected void onPreExecute(){
         loadingLayout = (RelativeLayout) rootview.findViewById(R.id.LoadingRelLayout);
@@ -67,6 +72,9 @@ public class GetSymondsTimetable extends AsyncTask<String, Void, String> {
             nameValuePairs.add(new BasicNameValuePair("username", params[1]));
             nameValuePairs.add(new BasicNameValuePair("password", params[2]));
             nameValuePairs.add(new BasicNameValuePair("signin", params[3]));
+
+            username = params[1];
+            password = params[2];
 
             httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
 
@@ -130,6 +138,22 @@ public class GetSymondsTimetable extends AsyncTask<String, Void, String> {
 
             }
             else{
+                handler = new DataHandler(context);
+                handler.open();
+                String query = "SELECT * FROM atable WHERE username = '" + username + "'";
+                Cursor data = handler.db.rawQuery(query, null);
+                if(data.moveToFirst()){
+                    ContentValues content = new ContentValues();
+                    content.put("username", username);
+                    content.put("password", password);
+                    content.put("html", arg);
+                    handler.db.update("atable", content, "username='"+username+"'", null);
+                }
+                else{
+                    long id = handler.insertData(username,password,arg);
+                }
+
+                handler.close();
 
                 Intent intent = new Intent(context, Timetable.class);
                 intent.putExtra("timetableHTML", arg);

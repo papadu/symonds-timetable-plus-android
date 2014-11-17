@@ -84,7 +84,7 @@ public class Timetable extends ActionBarActivity
     static List<String> times = new ArrayList<String>(Arrays.asList("08:30", "09:25", "10:20", "10:40", "11:35", "12:30", "13:00", "13:50", "14:45", "15:40", "16:35"));
 
 
-    static List<String> lessontimes = new ArrayList<String>(Arrays.asList("08:30"));
+    static List<String> lessontimes;
 
     static List<Lesson> todaysLessons = null;
 
@@ -105,7 +105,9 @@ public class Timetable extends ActionBarActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_timetable);
 
+
         if(!started) {
+            lessontimes = new ArrayList<String>(Arrays.asList("08:30"));
             Bundle extras = getIntent().getExtras();
             String myExtra = extras.getString("timetableHTML");
             parseHTML(myExtra);

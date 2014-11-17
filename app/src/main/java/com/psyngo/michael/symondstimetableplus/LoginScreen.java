@@ -1,5 +1,8 @@
 package com.psyngo.michael.symondstimetableplus;
 
+import android.content.Context;
+import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -9,12 +12,27 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class LoginScreen extends ActionBarActivity {
+
+    static LinearLayout newAc;
+    static LinearLayout existingAc;
+    static RelativeLayout loading;
+    DataHandler db;
+    static public int viewstate = 0;
+    static List<String[]> accs = new ArrayList<String[]>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,7 +45,28 @@ public class LoginScreen extends ActionBarActivity {
                     .add(R.id.container, new PlaceholderFragment())
                     .commit();
         }
-        Button submit = (Button) findViewById(R.id.submitButton);
+
+        String user;
+        String pass;
+        String html;
+        db = new DataHandler(getBaseContext());
+        db.open();
+        Cursor C = db.returnData();
+        if(C.moveToFirst()){
+            viewstate = 1;
+            do{
+                user = C.getString(0);
+                pass = C.getString(1);
+                html = C.getString(2);
+                accs.add(new String[]{user, pass, html});
+
+            }
+            while(C.moveToNext());
+        }
+        db.close();
+
+
+
 
 
 
@@ -66,14 +105,52 @@ public class LoginScreen extends ActionBarActivity {
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                 Bundle savedInstanceState) {
-            View rootView = inflater.inflate(R.layout.fragment_login_screen, container, false);
+            final View rootView = inflater.inflate(R.layout.fragment_login_screen, container, false);
             Typeface robotoThin = Typeface.createFromAsset(rootView.getContext().getAssets(), "fonts/Roboto-Light.ttf");
             EditText usernameEdit = (EditText) rootView.findViewById(R.id.username);
             EditText passwordEdit = (EditText) rootView.findViewById(R.id.password);
             TextView subtitle = (TextView) rootView.findViewById(R.id.login_prompt);
+            ListView accountsList = (ListView) rootView.findViewById(R.id.accountslistView);
             subtitle.setTypeface(robotoThin);
             usernameEdit.setTypeface(robotoThin);
             passwordEdit.setTypeface(robotoThin);
+
+            newAc = (LinearLayout) rootView.findViewById(R.id.loginLinearLayout);
+            existingAc = (LinearLayout) rootView.findViewById(R.id.existingAccountLinLayout);
+            loading = (RelativeLayout) rootView.findViewById(R.id.LoadingRelLayout);
+            if(viewstate == 0){
+                newAc.setVisibility(View.VISIBLE);
+                loading.setVisibility(View.INVISIBLE);
+                existingAc.setVisibility(View.INVISIBLE);
+            }
+            else if (viewstate == 1){
+                newAc.setVisibility(View.INVISIBLE);
+                loading.setVisibility(View.INVISIBLE);
+                existingAc.setVisibility(View.VISIBLE);
+            }
+
+            List<String> usernames = new ArrayList<String>();
+            for(String[] s : accs){
+                usernames.add(s[0]);
+            }
+
+            accountListAdapter adapter = new accountListAdapter(rootView.getContext(), R.layout.simple, usernames);
+            accountsList.setAdapter(adapter);
+
+            accountsList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                    Timetable.started = false;
+                    Intent intent = new Intent(rootView.getContext(), Timetable.class);
+                    intent.putExtra("timetableHTML", accs.get(position)[2]);
+                    rootView.getContext().startActivity(intent);
+
+
+
+
+
+                }
+            });
             return rootView;
         }
     }
@@ -96,10 +173,55 @@ public class LoginScreen extends ActionBarActivity {
 
     }
 
+    public void onNew(View view){
+        loading.setVisibility(View.INVISIBLE);
+        newAc.setVisibility(View.VISIBLE);
+        existingAc.setVisibility(View.INVISIBLE);
+    }
 
 
 
 
+
+}
+
+class accountListAdapter extends ArrayAdapter<String> {
+    List<String> objects;
+    Context context;
+    LayoutInflater mInflater;
+
+    public accountListAdapter(Context context, int resource, List<String> objects) {
+        super(context, resource, objects);
+        this.objects = objects;
+        this.context = context;
+        mInflater = LayoutInflater.from(context);
+    }
+
+    @Override
+    public View getView(int position, View convertView, ViewGroup parent) {
+        View itemView = convertView;
+        if (itemView == null) {
+
+
+            itemView = mInflater.inflate(R.layout.simple, parent, false);
+
+
+        }
+
+        String name = objects.get(position);
+        TextView tv = (TextView) itemView.findViewById(R.id.nametextView);
+        tv.setText(name);
+        ImageView i = (ImageView) itemView.findViewById(R.id.imageView);
+
+
+        i.setBackgroundDrawable(itemView.getResources().getDrawable(R.drawable.ic_arrow));
+
+
+
+
+        return itemView;
+
+    }
 }
 
 

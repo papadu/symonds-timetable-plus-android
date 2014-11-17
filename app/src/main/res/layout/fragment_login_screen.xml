@@ -98,4 +98,36 @@
             android:textColor="#ffffff" />
     </RelativeLayout>
 
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:id="@+id/existingAccountLinLayout"
+        android:gravity="center_horizontal"
+        android:paddingLeft="16dp"
+        android:paddingTop="16dp"
+        android:paddingRight="16dp"
+        android:visibility="invisible">
+
+        <ListView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/accountslistView"
+            android:layout_marginBottom="65dp"
+            android:visibility="visible" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:text="Log in to a new account"
+            android:id="@+id/newAcButton"
+            android:layout_marginTop="-60dp"
+            android:textColor="#ffffff"
+            android:background="#ff41b0ac"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:onClick="onNew" />
+
+    </LinearLayout>
+
 </FrameLayout>

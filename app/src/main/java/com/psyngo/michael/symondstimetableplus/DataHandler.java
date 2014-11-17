@@ -1,6 +1,8 @@
 package com.psyngo.michael.symondstimetableplus;
 
+import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
@@ -8,18 +10,14 @@ import android.database.sqlite.SQLiteOpenHelper;
  * Created by Michael on 29/10/2014.
  */
 public class DataHandler {
-    private static final String lessonTime = "time";
-    private static final String lessonSubject = "subject";
-    private static final String lessonTeacher = "teacher";
-    private static final String lessonRoom = "room";
-    private static final int length = 1;
-    private static final String nextTime = "nexttime";
-    private static final String whoElseFree = "whoelsefree";
-    private static final int backgroundColor = 0;
+    private static final String USERNAME = "username";
+    private static final String PASSWORD = "password";
+    private static final String HTML = "html";
 
-    private static final String DATABASE_NAME = "timetableDatabase";
+    private static final String TABLE_NAME = "atable";
+    private static final String DATABASE_NAME = "accountsDatabase";
     private static final int DATABASE_VERSION = 1;
-    private static final String TABLE_CREATE = "create table mytable (time text not null, subject text not null, teacher text not null, room text not null, length int not null, nexttime text not null, whoelsefree text, backgroundcolour int not null);";
+    private static final String TABLE_CREATE = "create table atable (username text not null, password text not null, html text not null);";
 
     DataBaseHelper dbhelper;
     Context ctx;
@@ -45,7 +43,7 @@ public class DataHandler {
 
         @Override
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-            db.execSQL("DROP TABLE IF EXISTS mytable ");
+            db.execSQL("DROP TABLE IF EXISTS atable ");
             onCreate(db);
         }
     }
@@ -60,8 +58,17 @@ public class DataHandler {
         dbhelper.close();
     }
 
-    public long insertData(String time, String subjectName, String teacher, String room, int length, String nextTime, String whoElseFree, int backgroundColor){
-        return 3;
+    public long insertData(String username, String password, String html){
+
+        ContentValues content = new ContentValues();
+        content.put(USERNAME, username);
+        content.put(PASSWORD, password);
+        content.put(HTML, html);
+        return db.insertOrThrow(TABLE_NAME, null, content);
+    }
+
+    public Cursor returnData(){
+        return  db.query(TABLE_NAME, new String[]{USERNAME, PASSWORD, HTML}, null, null, null, null, null);
     }
 
 }
