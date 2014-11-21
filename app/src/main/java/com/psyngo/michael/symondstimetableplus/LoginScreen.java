@@ -106,14 +106,14 @@ public class LoginScreen extends ActionBarActivity {
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                 Bundle savedInstanceState) {
             final View rootView = inflater.inflate(R.layout.fragment_login_screen, container, false);
-            Typeface robotoThin = Typeface.createFromAsset(rootView.getContext().getAssets(), "fonts/Roboto-Light.ttf");
+            Typeface robotoLight = Typeface.createFromAsset(rootView.getContext().getAssets(), "fonts/Roboto-Light.ttf");
             EditText usernameEdit = (EditText) rootView.findViewById(R.id.username);
             EditText passwordEdit = (EditText) rootView.findViewById(R.id.password);
             TextView subtitle = (TextView) rootView.findViewById(R.id.login_prompt);
             ListView accountsList = (ListView) rootView.findViewById(R.id.accountslistView);
-            subtitle.setTypeface(robotoThin);
-            usernameEdit.setTypeface(robotoThin);
-            passwordEdit.setTypeface(robotoThin);
+            subtitle.setTypeface(robotoLight);
+            usernameEdit.setTypeface(robotoLight);
+            passwordEdit.setTypeface(robotoLight);
 
             newAc = (LinearLayout) rootView.findViewById(R.id.loginLinearLayout);
             existingAc = (LinearLayout) rootView.findViewById(R.id.existingAccountLinLayout);
@@ -210,6 +210,8 @@ class accountListAdapter extends ArrayAdapter<String> {
 
         String name = objects.get(position);
         TextView tv = (TextView) itemView.findViewById(R.id.nametextView);
+        Typeface robotoLight = Typeface.createFromAsset(itemView.getContext().getAssets(), "fonts/Roboto-Light.ttf");
+        tv.setTypeface(robotoLight);
         tv.setText(name);
         ImageView i = (ImageView) itemView.findViewById(R.id.imageView);
 

@@ -18,6 +18,8 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.apache.commons.lang3.text.WordUtils;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -27,6 +29,7 @@ import io.orchestrate.client.Client;
 import io.orchestrate.client.KvList;
 import io.orchestrate.client.KvObject;
 import io.orchestrate.client.OrchestrateClient;
+import io.orchestrate.client.OrchestrateRequest;
 import io.orchestrate.client.ResponseAdapter;
 
 
@@ -36,18 +39,30 @@ public class AddAFriend_Activity extends ActionBarActivity {
     public static List<FriendList> friends = new ArrayList<FriendList>();
     static List<String> friendkeys = new ArrayList<String>();
     static boolean asyncRunning = false;
+    static List<String> NameList = new ArrayList<String>();
+    static nameListAdapter adapter;
+    ProgressBar pb;
+    static ListView addFriendList;
+    static KvList<FriendDatabaseObject> results;
+    static OrchestrateRequest<KvList<FriendDatabaseObject>> listOrchestrateRequest;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_afriend_);
-        ListView addFriendList = (ListView) findViewById(R.id.addFriendListview);
+        addFriendList = (ListView) findViewById(R.id.addFriendListview);
         final Context ctx = getApplicationContext();
 
-        ProgressBar pb = (ProgressBar) findViewById(R.id.ListViewProgressBar);
+        pb = (ProgressBar) findViewById(R.id.ListViewProgressBar);
 
-        getListOfNames l = new getListOfNames(addFriendList, ctx, pb);
+
+
+
+
+        getListOfNames l = new getListOfNames(addFriendList, ctx, pb, false);
         l.execute();
+
+
 
 
         addFriendList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -56,29 +71,33 @@ public class AddAFriend_Activity extends ActionBarActivity {
                 String clickedKey;
                 TextView clicked = (TextView) view.findViewById(R.id.nametextView);
                 clickedKey = clicked.getText().toString().toUpperCase();
-                if(!asyncRunning) {
+                if (!asyncRunning) {
                     getName n = new getName(ctx, clickedKey, view);
                     n.execute();
                 }
 
 
+            }
+        });
 
+        addFriendList.setOnScrollListener(new InfiniteScrollListener(2) {
+            @Override
+            public void loadMore(int page, int totalItemsCount) {
+
+                getListOfNames l = new getListOfNames(addFriendList, ctx, pb, true);
+                l.execute();
 
             }
         });
 
 
-
     }
-
-
 
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.add_afriend_, menu);
-
 
 
         return true;
@@ -97,26 +116,31 @@ public class AddAFriend_Activity extends ActionBarActivity {
     }
 }
 
-class getListOfNames extends AsyncTask<Void, Void, ArrayList<String>>{
+class getListOfNames extends AsyncTask<Void, Void, ArrayList<String>> {
     ListView lv;
     Context ctx;
     ProgressBar pb;
     boolean pinged = false;
     boolean success = true;
-    public getListOfNames(ListView lv, Context ctx, ProgressBar pb){
+    boolean next = false;
+
+    public getListOfNames(ListView lv, Context ctx, ProgressBar pb, boolean next) {
         this.lv = lv;
         this.ctx = ctx;
         this.pb = pb;
+        this.next = next;
     }
 
-    protected void onPreExecute(){
-        pb.setVisibility(View.VISIBLE);
-        lv.setVisibility(View.INVISIBLE);
+    protected void onPreExecute() {
+        if (!next) {
+            pb.setVisibility(View.VISIBLE);
+            lv.setVisibility(View.INVISIBLE);
+        }
 
 
     }
 
-    protected ArrayList<String> doInBackground(Void... params){
+    protected ArrayList<String> doInBackground(Void... params) {
 
 
         Client client = new OrchestrateClient("3e21631e-63cf-4b9e-b227-beabb7eab90a");
@@ -127,24 +151,42 @@ class getListOfNames extends AsyncTask<Void, Void, ArrayList<String>>{
         } catch (Throwable e) {
             e.printStackTrace();
             pinged = false;
-
-
         }
+
+
+        KvList<FriendDatabaseObject> l;
+
+
         ArrayList<String> names = new ArrayList<String>();
-        if(pinged) {
+        if (pinged) {
             try {
-                KvList<FriendDatabaseObject> results =
-                        client.listCollection("Frees")
-                                .limit(40)
-                                .withValues(Boolean.FALSE)
-                                .get(FriendDatabaseObject.class)
-                                .get(20, TimeUnit.SECONDS);
+
+                if(next){
+
+                    AddAFriend_Activity.listOrchestrateRequest = client.listCollection("Frees")
+                            .startKey(AddAFriend_Activity.NameList.get(AddAFriend_Activity.NameList.size()-1))
+                            .limit(50)
+                            .withValues(false)
+                            .get(FriendDatabaseObject.class);
+
+                }
+                else{
+
+                    AddAFriend_Activity.listOrchestrateRequest = client.listCollection("Frees")
+                            .limit(50)
+                            .withValues(false)
+                            .get(FriendDatabaseObject.class);
+                }
+
+                l = AddAFriend_Activity.listOrchestrateRequest.get(20, TimeUnit.SECONDS);
 
 
-                for (KvObject<FriendDatabaseObject> kvObject : results) {
+
+                for (KvObject<FriendDatabaseObject> kvObject : l) {
                     // do something with the object
 
                     names.add(kvObject.getKey());
+                    Log.d("myapp", "Getting new name:" + kvObject.getKey());
                 }
                 success = true;
             } catch (Throwable e) {
@@ -156,28 +198,42 @@ class getListOfNames extends AsyncTask<Void, Void, ArrayList<String>>{
         return names;
     }
 
-    protected void onPostExecute(ArrayList<String> arg){
-        if(!pinged){
+    protected void onPostExecute(ArrayList<String> arg) {
+        if (!pinged) {
             Toast.makeText(ctx, "Cannot reach server", Toast.LENGTH_LONG).show();
 
 
         }
-        if(success) {
-            nameListAdapter adapter = new nameListAdapter(ctx, R.layout.simple, arg);
+        if (success) {
+
             for (FriendList fl : AddAFriend_Activity.friends) {
-                AddAFriend_Activity.friendkeys.add(fl.getKey());
+                if(!AddAFriend_Activity.friendkeys.contains(fl.getKey())){
+                    AddAFriend_Activity.friendkeys.add(fl.getKey());
+                }
+
             }
-            lv.setAdapter(adapter);
+            if(next){
+                AddAFriend_Activity.NameList.addAll(arg);
+            }
+            else{
+                AddAFriend_Activity.NameList = arg;
+                AddAFriend_Activity.adapter = new nameListAdapter(ctx, R.layout.simple, AddAFriend_Activity.NameList);
+                AddAFriend_Activity.addFriendList.setAdapter(AddAFriend_Activity.adapter);
+            }
+
+            AddAFriend_Activity.adapter.notifyDataSetChanged();
 
             lv.setVisibility(View.VISIBLE);
-        }
-        else{
+
+
+        } else {
             Toast.makeText(ctx, "Operation Timed out, try again.", Toast.LENGTH_LONG).show();
         }
         pb.setVisibility(View.INVISIBLE);
 
     }
 }
+
 
 class nameListAdapter extends ArrayAdapter<String> {
     List<String> objects;
@@ -204,18 +260,16 @@ class nameListAdapter extends ArrayAdapter<String> {
 
         String name = objects.get(position);
         TextView tv = (TextView) itemView.findViewById(R.id.nametextView);
-        tv.setText(name.substring(0,1) + name.split(" ")[0].substring(1).toLowerCase() + " " + name.split(" ")[1].substring(0,1) + name.split(" ")[1].substring(1).toLowerCase());
+        tv.setText(WordUtils.capitalizeFully(name));
         ImageView i = (ImageView) itemView.findViewById(R.id.imageView);
 
-        if(AddAFriend_Activity.friendkeys.contains(name)){
+        if (AddAFriend_Activity.friendkeys.contains(name)) {
             i.setBackgroundDrawable(itemView.getResources().getDrawable(R.drawable.ic_action_done));
             itemView.setTag(1);
-        }
-        else{
+        } else {
             itemView.setTag(0);
             i.setBackgroundDrawable(itemView.getResources().getDrawable(R.drawable.ic_action_add_person));
         }
-
 
 
         return itemView;
@@ -223,7 +277,7 @@ class nameListAdapter extends ArrayAdapter<String> {
     }
 }
 
-class getName extends AsyncTask<Void, Void, Void>{
+class getName extends AsyncTask<Void, Void, Void> {
 
     Context ctx;
     String key;
@@ -233,7 +287,7 @@ class getName extends AsyncTask<Void, Void, Void>{
     boolean pinged = false;
     boolean success = true;
 
-    public getName(Context ctx, String key, View view){
+    public getName(Context ctx, String key, View view) {
         this.view = view;
         this.ctx = ctx;
         this.key = key;
@@ -241,19 +295,17 @@ class getName extends AsyncTask<Void, Void, Void>{
         p = (ProgressBar) view.findViewById(R.id.LoginprogressBar);
     }
 
-    protected void onPreExecute(){
+    protected void onPreExecute() {
         i.setVisibility(View.INVISIBLE);
         p.setVisibility(View.VISIBLE);
         AddAFriend_Activity.asyncRunning = true;
     }
 
 
-
-    protected Void doInBackground(Void... params){
-
+    protected Void doInBackground(Void... params) {
 
 
-        if(view.getTag().equals(0)){
+        if (view.getTag().equals(0)) {
 
 
             Client client = new OrchestrateClient("3e21631e-63cf-4b9e-b227-beabb7eab90a");
@@ -296,23 +348,19 @@ class getName extends AsyncTask<Void, Void, Void>{
                                 }
                             }).get(10, TimeUnit.SECONDS);
                 }
-            }
-            catch (Throwable e){
+            } catch (Throwable e) {
                 e.printStackTrace();
                 success = false;
             }
 
 
-
-
-        }
-        else{
+        } else {
             i.setBackgroundDrawable(ctx.getResources().getDrawable(R.drawable.ic_action_add_person));
             view.setTag(0);
 
-            for(Iterator<FriendList> fl = AddAFriend_Activity.friends.iterator(); fl.hasNext();){
+            for (Iterator<FriendList> fl = AddAFriend_Activity.friends.iterator(); fl.hasNext(); ) {
                 FriendList f = fl.next();
-                if(f.getKey().equals(key)){
+                if (f.getKey().equals(key)) {
                     fl.remove();
                     AddAFriend_Activity.friendkeys.remove(key);
                 }
@@ -321,16 +369,15 @@ class getName extends AsyncTask<Void, Void, Void>{
         }
 
 
-
         return null;
 
     }
 
-    protected void onPostExecute(Void a){
-        if(!pinged){
+    protected void onPostExecute(Void a) {
+        if (!pinged) {
             Toast.makeText(ctx, "Cannot reach server", Toast.LENGTH_SHORT).show();
         }
-        if(!success){
+        if (!success) {
             Toast.makeText(ctx, "Operation timed out, try again.", Toast.LENGTH_SHORT).show();
         }
         i.setVisibility(View.VISIBLE);

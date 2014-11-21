@@ -114,7 +114,10 @@
             android:layout_height="match_parent"
             android:id="@+id/accountslistView"
             android:layout_marginBottom="65dp"
-            android:visibility="visible" />
+            android:visibility="visible"
+
+            android:divider="#2effffff"
+            android:dividerHeight="1px"/>
 
         <Button
             android:layout_width="wrap_content"

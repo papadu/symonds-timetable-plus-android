@@ -12,6 +12,7 @@ public class FriendDatabaseObject {
     List<Calendar[]> Wednesday;
     List<Calendar[]> Thursday;
     List<Calendar[]> Friday;
+    int WeekNumber;
 
     public FriendDatabaseObject(List<Calendar[]> monday, List<Calendar[]> tuesday, List<Calendar[]> wednesday, List<Calendar[]> thursday, List<Calendar[]> friday) {
         Monday = monday;
