@@ -284,7 +284,7 @@ class getName extends AsyncTask<Void, Void, Void> {
     View view;
     ImageView i;
     ProgressBar p;
-    boolean pinged = false;
+    boolean pinged = true;
     boolean success = true;
 
     public getName(Context ctx, String key, View view) {

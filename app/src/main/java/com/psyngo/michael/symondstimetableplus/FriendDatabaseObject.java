@@ -12,19 +12,34 @@ public class FriendDatabaseObject {
     List<Calendar[]> Wednesday;
     List<Calendar[]> Thursday;
     List<Calendar[]> Friday;
-    int WeekNumber;
 
-    public FriendDatabaseObject(List<Calendar[]> monday, List<Calendar[]> tuesday, List<Calendar[]> wednesday, List<Calendar[]> thursday, List<Calendar[]> friday) {
+
+
+    String date;
+    String name;
+
+    public FriendDatabaseObject(String name, String date, List<Calendar[]> monday, List<Calendar[]> tuesday, List<Calendar[]> wednesday, List<Calendar[]> thursday, List<Calendar[]> friday) {
         Monday = monday;
         Tuesday = tuesday;
         Wednesday = wednesday;
         Thursday = thursday;
         Friday = friday;
+        this.date = date;
+        this.name = name;
     }
 
     public FriendDatabaseObject(){
 
     }
+
+    public String getDate() {
+        return date;
+    }
+
+    public void setDate(String date) {
+        this.date = date;
+    }
+
 
     public List<Calendar[]> getMonday() {
         return Monday;
@@ -64,6 +79,15 @@ public class FriendDatabaseObject {
 
     public void setFriday(List<Calendar[]> friday) {
         Friday = friday;
+    }
+
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 }
 

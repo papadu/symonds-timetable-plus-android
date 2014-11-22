@@ -30,10 +30,6 @@ public class Detail_FreePeriod_Activity extends ActionBarActivity {
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_list_item_1, data);
         ListView lv = (ListView) findViewById(R.id.whoElseFreeListview);
         lv.setAdapter(adapter);
-
-
-
-
     }
 
 

@@ -54,9 +54,8 @@ import io.orchestrate.client.KvMetadata;
 import io.orchestrate.client.OrchestrateClient;
 import io.orchestrate.client.ResponseAdapter;
 
-
 public class Timetable extends ActionBarActivity
-        implements NavigationDrawerFragment.NavigationDrawerCallbacks{
+        implements NavigationDrawerFragment.NavigationDrawerCallbacks {
 
     /**
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
@@ -85,40 +84,29 @@ public class Timetable extends ActionBarActivity
 
     static List<String> times = new ArrayList<String>(Arrays.asList("08:30", "09:25", "10:20", "10:40", "11:35", "12:30", "13:00", "13:50", "14:45", "15:40", "16:35"));
 
-
     static List<String> lessontimes;
 
     static List<Lesson> todaysLessons = null;
 
     static Lesson clickedLesson;
 
-
     static boolean started = false;
 
     static View root;
-
-
-
-
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         ((MyApplication) getApplication()).getTracker(MyApplication.TrackerName.APP_TRACKER);
 
-
         setContentView(R.layout.activity_timetable);
 
-
-
-
-        if(!started) {
+        if (!started) {
             lessontimes = new ArrayList<String>(Arrays.asList("08:30"));
             Bundle extras = getIntent().getExtras();
             String myExtra = extras.getString("timetableHTML");
             parseHTML(myExtra);
-            started=true;
+            started = true;
         }
 
         addFriends();
@@ -129,15 +117,9 @@ public class Timetable extends ActionBarActivity
 
         Thread myThread = null;
 
-
-
         Runnable myRunnableThread = new CountDownRunner();
         myThread = new Thread(myRunnableThread);
         myThread.start();
-
-
-
-
 
         // Set up the drawer.
         mNavigationDrawerFragment.setUp(
@@ -146,44 +128,41 @@ public class Timetable extends ActionBarActivity
     }
 
     @Override
-    protected void onStart(){
+    protected void onStart() {
         super.onStart();
         GoogleAnalytics.getInstance(this).reportActivityStart(this);
     }
 
     @Override
-    protected void onStop(){
+    protected void onStop() {
         super.onStop();
         GoogleAnalytics.getInstance(this).reportActivityStop(this);
     }
 
-
-    public void addFriends(){
+    public void addFriends() {
         Monday = deleteFrees(Monday);
         Tuesday = deleteFrees(Tuesday);
         Wednesday = deleteFrees(Wednesday);
         Thursday = deleteFrees(Thursday);
         Friday = deleteFrees(Friday);
 
-        for(FriendList fl : AddAFriend_Activity.friends){
+        for (FriendList fl : AddAFriend_Activity.friends) {
             Monday = addFriendsFreePeriods(Monday, fl.getValue().getMonday(), fl.getKey());
             Tuesday = addFriendsFreePeriods(Tuesday, fl.getValue().getTuesday(), fl.getKey());
             Wednesday = addFriendsFreePeriods(Wednesday, fl.getValue().getWednesday(), fl.getKey());
             Thursday = addFriendsFreePeriods(Thursday, fl.getValue().getThursday(), fl.getKey());
             Friday = addFriendsFreePeriods(Friday, fl.getValue().getFriday(), fl.getKey());
         }
-
     }
 
-    public List<Lesson> addFriendsFreePeriods(List<Lesson> day, List<Calendar[]> friendsDay, String name){
-        for (Lesson les: day){
+    public List<Lesson> addFriendsFreePeriods(List<Lesson> day, List<Calendar[]> friendsDay, String name) {
+        for (Lesson les : day) {
 
-            for(Calendar[] free : friendsDay) {
-                if (les.getLessonName().equals("Free Period") && les.getStartTime().getTime().getTime() >= free[0].getTime().getTime() && les.getEndTime().getTime().getTime() <= free[1].getTime().getTime()){
+            for (Calendar[] free : friendsDay) {
+                if (les.getLessonName().equals("Free Period") && les.getStartTime().getTime().getTime() >= free[0].getTime().getTime() && les.getEndTime().getTime().getTime() <= free[1].getTime().getTime()) {
                     List<String> whosFree = les.getWhoElseFree();
                     whosFree.add(name);
                     les.setWhoElseFree(whosFree);
-
                 }
             }
         }
@@ -191,15 +170,12 @@ public class Timetable extends ActionBarActivity
         return day;
     }
 
-    public List<Lesson> deleteFrees(List<Lesson> day){
-        for (Lesson les: day){
+    public List<Lesson> deleteFrees(List<Lesson> day) {
+        for (Lesson les : day) {
             les.setWhoElseFree(new ArrayList<String>());
         }
         return day;
     }
-
-
-
 
     public void doWork() {
         runOnUiThread(new Runnable() {
@@ -209,7 +185,6 @@ public class Timetable extends ActionBarActivity
             }
         });
     }
-
 
     class CountDownRunner implements Runnable {
         // @Override
@@ -226,8 +201,8 @@ public class Timetable extends ActionBarActivity
         }
     }
 
-    public void animateQuickview(final View view){
-        final LinearLayout quickview = (LinearLayout)  view.findViewById(R.id.Quick_view);
+    public void animateQuickview(final View view) {
+        final LinearLayout quickview = (LinearLayout) view.findViewById(R.id.Quick_view);
         final TextView topTextview = (TextView) view.findViewById(R.id.prefix_textview);
         final TextView middleTextview = (TextView) view.findViewById(R.id.subject_textview);
         final TextView bottomTextview = (TextView) view.findViewById(R.id.time_left_texview);
@@ -241,20 +216,15 @@ public class Timetable extends ActionBarActivity
         Point size = new Point();
         display.getSize(size);
         final int width = size.x;
-        if(happeningNow){
+        if (happeningNow) {
             topText = nextLessonprefixText;
             middleText = NextLessonsubjectText;
             bottomText = NextLessonsubtitleText;
-
-
-        }
-        else{
+        } else {
             topText = happeningNowprefixText;
             middleText = happeningNowsubjectText;
             bottomText = happeningNowsubtitleText;
-
         }
-
 
         ValueAnimator topExit = getAnimation(16, -300, true, topTextview, view, width, topText);
         ValueAnimator middleExit = getAnimation(16, -300, true, middleTextview, view, width, middleText);
@@ -268,16 +238,12 @@ public class Timetable extends ActionBarActivity
         textviews.play(topExit).before(middleExit);
         textviews.play(middleExit).before(bottomExit);
         textviews.play(bottomExit);
-        textviews.addListener(new AnimatorListenerAdapter()
-        {
+        textviews.addListener(new AnimatorListenerAdapter() {
             @Override
-            public void onAnimationEnd(Animator animation)
-            {
+            public void onAnimationEnd(Animator animation) {
                 happeningNow = !happeningNow;
-
             }
         });
-
 
         AnimatorSet textviewReturn = new AnimatorSet();
         textviewReturn.play(topReturn).before(middleReturn);
@@ -287,28 +253,18 @@ public class Timetable extends ActionBarActivity
         AnimatorSet fullAnimation = new AnimatorSet();
         fullAnimation.play(textviews).before(textviewReturn);
         fullAnimation.play(textviewReturn);
-        fullAnimation.addListener(new AnimatorListenerAdapter()
-        {
+        fullAnimation.addListener(new AnimatorListenerAdapter() {
             @Override
-            public void onAnimationEnd(Animator animation)
-            {
+            public void onAnimationEnd(Animator animation) {
                 quickview.setClickable(true);
-
             }
         });
         fullAnimation.start();
-
-
-
-
-
-
     }
 
-    public ValueAnimator getAnimation(int startMargin, int endMargin, boolean exitAnimation, final TextView textview, final View view, final int screenwidth, final String newText){
+    public ValueAnimator getAnimation(int startMargin, int endMargin, boolean exitAnimation, final TextView textview, final View view, final int screenwidth, final String newText) {
         ValueAnimator valAnim = ValueAnimator.ofInt(startMargin, endMargin);
         valAnim.setDuration(200);
-
 
         valAnim.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
 
@@ -318,33 +274,23 @@ public class Timetable extends ActionBarActivity
                 lp.setMargins((int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (Integer) animation.getAnimatedValue(), view.getContext().getResources().getDisplayMetrics()), 0, 0, 0);
                 lp.width = screenwidth;
                 textview.setLayoutParams(lp);
-
             }
-
-
         });
 
-        if(exitAnimation){
+        if (exitAnimation) {
             valAnim.setInterpolator(new AccelerateInterpolator());
-
-        }
-        else{
+        } else {
             valAnim.setInterpolator(new DecelerateInterpolator());
-            valAnim.addListener(new AnimatorListenerAdapter()
-            {
+            valAnim.addListener(new AnimatorListenerAdapter() {
                 @Override
-                public void onAnimationStart(Animator animation)
-                {
+                public void onAnimationStart(Animator animation) {
                     textview.setText(newText);
-
                 }
             });
         }
 
         return valAnim;
-
     }
-
 
     public void parseHTML(String timetableHTMLstring) {
         Document doc = Jsoup.parse(timetableHTMLstring);
@@ -359,14 +305,11 @@ public class Timetable extends ActionBarActivity
         String time;
 
         List<String> whoElseFree = new ArrayList<String>();
-        int subjectColor = Color.rgb(22,168,158);
+        int subjectColor = Color.rgb(22, 168, 158);
         int colorIndex = 0;
-        int[] subjectColors = new int[]{Color.rgb(24,212,179), Color.rgb(0,191,165),Color.rgb(13,182,159)};
+        int[] subjectColors = new int[]{Color.rgb(24, 212, 179), Color.rgb(0, 191, 165), Color.rgb(13, 182, 159)};
 
         boolean useFreeHighlight = true;
-
-
-
 
         Week = new ArrayList<Lesson>();
         Monday = new ArrayList<Lesson>();
@@ -385,9 +328,6 @@ public class Timetable extends ActionBarActivity
 
         int day = 1;
 
-
-
-
         int[] offsets = new int[rows.size()];
 
         for (int i = 0; i < rows.get(0).children().size(); i++) //unless colspans are used, this should return the number of columns
@@ -395,38 +335,25 @@ public class Timetable extends ActionBarActivity
 
             for (int j = 1; j < rows.size(); j++) // loops through the rows of each column
             {
-
                 Element cell = rows.get(j).child(i + offsets[j]); //get an individual cell
-                if(cell.hasClass("time")){
+                if (cell.hasClass("time")) {
                     lessontimes.add(cell.text());
-
-
-
-
                     continue;
                 }
-
-
-
-                //Log.d("myapp", "j:" + j + "lessonIndex: " + lessonIndex);
-
 
                 int rowspan;
                 if (cell.hasAttr("rowspan")) //if that cell has a rowspan
                 {
                     rowspan = Integer.parseInt(cell.attr("rowspan"));
-
                     for (int k = 1; k < rowspan; k++) {
                         offsets[j + k]--; //add offsets to rows that now have a cell "missing"
                     }
-
                     j += rowspan - 1; //add rowspan to index, to skip the "missing" cells
-                }
-                else{
+                } else {
                     rowspan = 1;
                 }
 
-                time = lessontimes.get(j-rowspan);
+                time = lessontimes.get(j - rowspan);
 
                 if (cell.hasClass("item")) {
                     subject = cell.select(".title").text();
@@ -434,29 +361,22 @@ public class Timetable extends ActionBarActivity
                     String[] split = cell.select(".room").text().split(" ");
                     room = split[0];
 
-
-
-                    if(colorIndex > subjectColors.length-1){
+                    if (colorIndex > subjectColors.length - 1) {
                         colorIndex = 0;
                     }
 
-                    if(time.equals("08:30")){
+                    if (time.equals("08:30")) {
                         colorIndex = 0;
                     }
 
                     subjectColor = subjectColors[colorIndex];
                     colorIndex += 1;
-
-
-
-
-
                 } else //if (cell.hasClass("blank"))//
                 {
                     subject = cell.text();
 
                     colorIndex = 0;
-                    if(!subject.equals("Break") && !subject.equals("Lunch")) {
+                    if (!subject.equals("Break") && !subject.equals("Lunch")) {
                         if (useFreeHighlight) {
                             subjectColor = Color.rgb(19, 162, 215);
                             useFreeHighlight = false;
@@ -466,23 +386,17 @@ public class Timetable extends ActionBarActivity
                         }
                     }
 
-
                     teacher = "";
                     room = "";
-
-
                 }
 
-
-
-                if(subject.equals("Study Period")){
+                if (subject.equals("Study Period")) {
                     subject = "Free Period";
                 }
 
-                if(subject.equals("Symonds Lecture Programme")){
+                if (subject.equals("Symonds Lecture Programme")) {
                     subject = "Lecture Programme";
                 }
-
 
                 Calendar endcal = Calendar.getInstance();
                 Calendar startcal = Calendar.getInstance();
@@ -498,16 +412,11 @@ public class Timetable extends ActionBarActivity
 
                 length = (int) Math.abs(startcal.getTimeInMillis() - endcal.getTimeInMillis()) / 60000;
 
-
-
                 Lesson lesson = new Lesson(time, subject, teacher, room, length, whoElseFree, startcal, endcal, subjectColor);
-
-
 
                 switch (day) {
                     case 1:
                         Monday.add(lesson);
-
                         break;
                     case 2:
                         Tuesday.add(lesson);
@@ -523,7 +432,7 @@ public class Timetable extends ActionBarActivity
                         break;
                 }
 
-                if(j >= rows.size()-1){
+                if (j >= rows.size() - 1) {
                     day += 1;
                 }
 
@@ -534,10 +443,7 @@ public class Timetable extends ActionBarActivity
                 }*/
 
             }
-
-
         }
-        Log.d("myapp", lessontimes.toString());
 
         Monday = joinFreePeriods(Monday);
         Tuesday = joinFreePeriods(Tuesday);
@@ -551,67 +457,67 @@ public class Timetable extends ActionBarActivity
         thursdayFrees = getFrees(Thursday);
         fridayFrees = getFrees(Friday);
 
-        FriendDatabaseObject value = new FriendDatabaseObject(mondayFrees,tuesdayFrees,wednesdayFrees,thursdayFrees,fridayFrees);
-        String key = doc.select("#content").text().split(",")[0];
-        Log.d("myapp", value.toString());
+        String date = getWeekDate(doc);
+        String name = WordUtils.capitalizeFully(doc.select("#content").text().split(",")[0]);
+
+        FriendDatabaseObject value = new FriendDatabaseObject(name, date, mondayFrees, tuesdayFrees, wednesdayFrees, thursdayFrees, fridayFrees);
+        String key = LoginScreen.username;
+
         addToServer ats = new addToServer(key, value, getApplicationContext());
         ats.execute();
-
-
-
-
-
     }
 
-    public List<Lesson> joinFreePeriods(List<Lesson> dayofweek){
+    public String getWeekDate(Document doc) {
+        Elements div = doc.select("#TimetableTitle");
+        Elements h3 = div.select("h3");
+        String fullTitle = h3.text();
+        String[] splits = fullTitle.split("(?=\\b[0-9])", 2);
+        String date = splits[1];
+        return date;
+    }
 
-        for (int i = 1; i < dayofweek.size(); i++){
+    public List<Lesson> joinFreePeriods(List<Lesson> dayofweek) {
+
+        for (int i = 1; i < dayofweek.size(); i++) {
             Lesson currentLesson = dayofweek.get(i);
-            Lesson previousLesson = dayofweek.get(i-1);
-            if(currentLesson.getLessonName().equals("Free Period") && previousLesson.getLessonName().equals("Free Period") && currentLesson.getLength() + previousLesson.getLength() <= 55){
+            Lesson previousLesson = dayofweek.get(i - 1);
+            if (currentLesson.getLessonName().equals("Free Period") && previousLesson.getLessonName().equals("Free Period") && currentLesson.getLength() + previousLesson.getLength() <= 55) {
                 dayofweek.remove(i);
                 previousLesson.setLength(currentLesson.getLength() + previousLesson.getLength());
                 previousLesson.setEndTime(currentLesson.getEndTime());
-                dayofweek.set(i-1, previousLesson);
-                i-=1;
+                dayofweek.set(i - 1, previousLesson);
+                i -= 1;
             }
         }
         return dayofweek;
     }
 
-    public List<Calendar[]> getFrees(List<Lesson> dayofweek){
+    public List<Calendar[]> getFrees(List<Lesson> dayofweek) {
         List<Calendar[]> x = new ArrayList<Calendar[]>();
-        for(Lesson les: dayofweek){
-            if(les.getLessonName().equals("Free Period")){
+        for (Lesson les : dayofweek) {
+            if (les.getLessonName().equals("Free Period")) {
                 x.add(new Calendar[]{les.getStartTime(), les.getEndTime()});
             }
         }
         return x;
     }
 
-    public void startDetailActivity(View v){
+    public void startDetailActivity(View v) {
         LinearLayout cont = (LinearLayout) v.findViewById(R.id.cont);
         int i = Integer.parseInt(cont.getTag().toString());
         clickedLesson = todaysLessons.get(i);
         Intent detailIntent;
-        if(clickedLesson.getLessonName().equals("Free Period")){
+        if (clickedLesson.getLessonName().equals("Free Period")) {
             detailIntent = new Intent(v.getContext(), Detail_FreePeriod_Activity.class);
-            for(String s : clickedLesson.getWhoElseFree()) {
+            for (String s : clickedLesson.getWhoElseFree()) {
                 Log.d("xxxxxx", s);
             }
-
-        }
-        else{
+        } else {
             detailIntent = new Intent(v.getContext(), DetailActivity.class);
         }
 
         startActivity(detailIntent);
-
-
-
     }
-
-
 
     @Override
     public void onNavigationDrawerItemSelected(int position) {
@@ -648,7 +554,6 @@ public class Timetable extends ActionBarActivity
         actionBar.setDisplayShowTitleEnabled(true);
         actionBar.setTitle(mTitle);
     }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -691,7 +596,6 @@ public class Timetable extends ActionBarActivity
         private static final String ARG_SECTION_NUMBER = "section_number";
         private static boolean openCurrentDay = true;
 
-
         /**
          * Returns a new instance of this fragment for the given section
          * number.
@@ -701,7 +605,6 @@ public class Timetable extends ActionBarActivity
             Bundle args = new Bundle();
             args.putInt(ARG_SECTION_NUMBER, sectionNumber);
             fragment.setArguments(args);
-
 
             return fragment;
         }
@@ -713,11 +616,7 @@ public class Timetable extends ActionBarActivity
         public void onCreate(Bundle savedInstanceState) {
 
             super.onCreate(savedInstanceState);
-
         }
-
-
-
 
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -738,8 +637,7 @@ public class Timetable extends ActionBarActivity
 
             int dayNum;
 
-             dayNum = args.getInt(ARG_SECTION_NUMBER);
-
+            dayNum = args.getInt(ARG_SECTION_NUMBER);
 
             TextView dayHeader = (TextView) rootView.findViewById(R.id.day_textview);
             switch (dayNum) {
@@ -763,7 +661,6 @@ public class Timetable extends ActionBarActivity
                     todaysLessons = Friday;
                     dayHeader.setText("FRIDAY");
                     break;
-
             }
             root = rootView;
 
@@ -774,19 +671,12 @@ public class Timetable extends ActionBarActivity
             list.setAdapter(adapter);
             */
 
-
             LinearLayout qv = (LinearLayout) rootView.findViewById(R.id.Quick_view);
-            qv.setBackgroundColor(Color.rgb(51,181,229));
+            qv.setBackgroundColor(Color.rgb(51, 181, 229));
 
             LinearLayout timetableCont = (LinearLayout) rootView.findViewById(R.id.timetable_container);
 
-
-
-
-
-
-
-            for(int i = 0; i < times.size()-1; i++){
+            for (int i = 0; i < times.size() - 1; i++) {
                 LayoutInflater vi = (LayoutInflater) rootView.getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
                 View v = vi.inflate(R.layout.list_item_times, null);
 
@@ -797,30 +687,26 @@ public class Timetable extends ActionBarActivity
                 time.setText(times.get(i));
                 params.height = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 72, getActivity().getResources().getDisplayMetrics());
 
-                if(times.get(i).equals("10:20")){
+                if (times.get(i).equals("10:20")) {
                     params.height = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (float) 24, getActivity().getResources().getDisplayMetrics());
                     time.setText("");
                 }
-                if(times.get(i).equals("12:30")){
-                    params.height = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (float)72/55*30, getActivity().getResources().getDisplayMetrics());
+                if (times.get(i).equals("12:30")) {
+                    params.height = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (float) 72 / 55 * 30, getActivity().getResources().getDisplayMetrics());
                     time.setText("");
                 }
-                if(times.get(i).equals("13:00")){
-                    params.height = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (float)72/55*50, getActivity().getResources().getDisplayMetrics());
+                if (times.get(i).equals("13:00")) {
+                    params.height = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (float) 72 / 55 * 50, getActivity().getResources().getDisplayMetrics());
                     time.setText(times.get(i));
                 }
 
-
                 time.setTypeface(robotoThin);
-
 
                 View insertPoint = rootView.findViewById(R.id.times_container);
                 ((ViewGroup) insertPoint).addView(v);
             }
 
-
-
-            for(Lesson les : todaysLessons){
+            for (Lesson les : todaysLessons) {
                 LayoutInflater vi = (LayoutInflater) rootView.getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
                 View v = vi.inflate(R.layout.lesson, null);
 
@@ -834,19 +720,16 @@ public class Timetable extends ActionBarActivity
                 ViewGroup.LayoutParams contParams = cont.getLayoutParams();
                 ViewGroup.LayoutParams subjectContParams = subjectTextviewContainer.getLayoutParams();
 
-
                 subjectTextView.setText(les.getLessonName());
                 subjectTextView.setTypeface(robotoThin);
 
                 float units = (float) les.getLength();
 
-
                 cont.setBackgroundColor(les.getBackgroundColor());
 
-                if(units < 50) {
-                    subjectTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, units/55*40);
-                }
-                else {
+                if (units < 50) {
+                    subjectTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, units / 55 * 40);
+                } else {
                     subjectTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 30);
                 }
                 subjectTextView.setLineSpacing(-10, 1);
@@ -855,38 +738,30 @@ public class Timetable extends ActionBarActivity
                 textParams.setMargins(5, -10, 0, 0);
                 subjectTextView.setLayoutParams(textParams);
 
-
-
-
-
-                contParams.height = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (float)units/55*72, v.getContext().getResources().getDisplayMetrics());
-                if(les.getLength() > 55){
+                contParams.height = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (float) units / 55 * 72, v.getContext().getResources().getDisplayMetrics());
+                if (les.getLength() > 55) {
                     units = 55;
                 }
 
-                subjectContParams.height=(int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (float)units/55*72, v.getContext().getResources().getDisplayMetrics());
+                subjectContParams.height = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (float) units / 55 * 72, v.getContext().getResources().getDisplayMetrics());
 
-
-                if (les.getLessonName().equals("Free Period")){
-                    if(les.getLength()>=55) {
-
-
+                if (les.getLessonName().equals("Free Period")) {
+                    if (les.getLength() >= 55) {
 
                         String sub = "";
-                        if(les.getWhoElseFree().size()==0){
+                        if (les.getWhoElseFree().size() == 0) {
                             sub = "Noone.";
                         }
-                        if(les.getWhoElseFree().size()==1){
+                        if (les.getWhoElseFree().size() == 1) {
                             sub = WordUtils.capitalizeFully(les.getWhoElseFree().get(0).split(" ")[0]) + ".";
                         }
-                        if(les.getWhoElseFree().size()==2){
+                        if (les.getWhoElseFree().size() == 2) {
                             sub = WordUtils.capitalizeFully(les.getWhoElseFree().get(0).split(" ")[0]) + " and " + WordUtils.capitalizeFully(les.getWhoElseFree().get(1).split(" ")[0]) + ".";
                         }
-                        if(les.getWhoElseFree().size()>2){
+                        if (les.getWhoElseFree().size() > 2) {
                             sub = WordUtils.capitalizeFully(les.getWhoElseFree().get(0).split(" ")[0]) + ", " +
                                     WordUtils.capitalizeFully(les.getWhoElseFree().get(1).split(" ")[0]) + "...";
                         }
-
 
                         SpannableString txt = new SpannableString("Free Period\n With " + sub);
                         txt.setSpan(new RelativeSizeSpan(0.5f), 11, txt.length(), 0);
@@ -899,37 +774,21 @@ public class Timetable extends ActionBarActivity
                     }
                 }
 
-
                 if (les.getLessonName().equals("Break")) {
-                    cont.setBackgroundColor(Color.rgb(51,181,229));
-                    contParams.height=(int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 24, getActivity().getResources().getDisplayMetrics());
+                    cont.setBackgroundColor(Color.rgb(51, 181, 229));
+                    contParams.height = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 24, getActivity().getResources().getDisplayMetrics());
 
-
-                    subjectContParams.height=(int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 24, getActivity().getResources().getDisplayMetrics());
+                    subjectContParams.height = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 24, getActivity().getResources().getDisplayMetrics());
                     subjectTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
-
-
-
                 }
-                if(les.getLessonName().equals("Lunch")){
-                    cont.setBackgroundColor(Color.rgb(51,181,229));
-
+                if (les.getLessonName().equals("Lunch")) {
+                    cont.setBackgroundColor(Color.rgb(51, 181, 229));
                 }
-
 
                 cont.setTag(todaysLessons.indexOf(les));
                 View insertPoint = rootView.findViewById(R.id.timetable_container);
                 ((ViewGroup) insertPoint).addView(v);
-
-
-
             }
-
-
-
-
-
-
 
             return rootView;
         }
@@ -940,8 +799,6 @@ public class Timetable extends ActionBarActivity
             ((Timetable) activity).onSectionAttached(
                     getArguments().getInt(ARG_SECTION_NUMBER));
         }
-
-
     }
 }
 
@@ -958,7 +815,6 @@ class Quickview {
         TextView bottomTextView = (TextView) rootView.findViewById(R.id.time_left_texview);
         TextView topTextView = (TextView) rootView.findViewById(R.id.prefix_textview);
         ImageView divider = (ImageView) rootView.findViewById(R.id.divider_imageview);
-
 
         Calendar calendar = Calendar.getInstance();
         int dayNum = calendar.get(Calendar.DAY_OF_WEEK) - 1;
@@ -982,15 +838,12 @@ class Quickview {
                 case 5:
                     todaysLessons = Timetable.Friday;
                     break;
-
-
             }
 
             middleTextView.setVisibility(View.VISIBLE);
             bottomTextView.setVisibility(View.VISIBLE);
             topTextView.setVisibility(View.VISIBLE);
             divider.setVisibility(View.VISIBLE);
-
 
             for (Lesson les : todaysLessons) {
                 Calendar cal = Calendar.getInstance();
@@ -999,48 +852,37 @@ class Quickview {
                 cal.set(Calendar.MONTH, les.getEndTime().get(Calendar.MONTH));
                 cal.set(Calendar.YEAR, les.getEndTime().get(Calendar.YEAR));
 
-
-
-
-
-
                 Date dt = cal.getTime();
                 long currenttime = dt.getTime();
                 if (currenttime > les.getStartTime().getTime().getTime() && currenttime < les.getEndTime().getTime().getTime()) {
 
-
-                    String timeleft = String.valueOf(1+(Math.abs(les.getEndTime().getTimeInMillis() - cal.getTimeInMillis()) / 60000));
-
+                    String timeleft = String.valueOf(1 + (Math.abs(les.getEndTime().getTimeInMillis() - cal.getTimeInMillis()) / 60000));
 
                     Timetable.happeningNowsubjectText = les.getLessonName();
-                    if(les.getLessonName().equals("Free Period")){
+                    if (les.getLessonName().equals("Free Period")) {
                         String sub = "With ";
-                        if(les.getWhoElseFree().size()==0){
+                        if (les.getWhoElseFree().size() == 0) {
                             sub += "Noone.";
                         }
-                        if(les.getWhoElseFree().size()==1){
+                        if (les.getWhoElseFree().size() == 1) {
                             sub += WordUtils.capitalizeFully(les.getWhoElseFree().get(0).split(" ")[0]) + ".";
                         }
-                        if(les.getWhoElseFree().size()==2){
+                        if (les.getWhoElseFree().size() == 2) {
                             sub += WordUtils.capitalizeFully(les.getWhoElseFree().get(0).split(" ")[0]) + " and " + WordUtils.capitalizeFully(les.getWhoElseFree().get(1).split(" ")[0]) + ".";
                         }
-                        if(les.getWhoElseFree().size()>2){
+                        if (les.getWhoElseFree().size() > 2) {
                             sub += WordUtils.capitalizeFully(les.getWhoElseFree().get(0).split(" ")[0]) + ", " +
                                     WordUtils.capitalizeFully(les.getWhoElseFree().get(1).split(" ")[0]) + " and " +
                                     (les.getWhoElseFree().size() - 2) + " others.";
                         }
                         Timetable.happeningNowsubtitleText = sub;
-
-                    }
-                    else {
+                    } else {
                         Timetable.happeningNowsubtitleText = timeleft + " Minutes left";
                     }
-
-                } else if (!les.getLessonName().equals("Break")&& currenttime < les.getStartTime().getTime().getTime() && !les.getLessonName().equals("Free Period")&& !les.getLessonName().equals("Lunch")) {
-
+                } else if (!les.getLessonName().equals("Break") && currenttime < les.getStartTime().getTime().getTime() && !les.getLessonName().equals("Free Period") && !les.getLessonName().equals("Lunch")) {
 
                     Timetable.NextLessonsubjectText = les.getLessonName();
-                    long timeleft = 1+(Math.abs(les.getStartTime().getTimeInMillis() - cal.getTimeInMillis()) / 60000);
+                    long timeleft = 1 + (Math.abs(les.getStartTime().getTimeInMillis() - cal.getTimeInMillis()) / 60000);
                     if (timeleft < 60) {
                         String timeleftminutes = String.valueOf(timeleft);
                         Timetable.NextLessonsubtitleText = ("in " + timeleftminutes + " Minutes");
@@ -1050,41 +892,30 @@ class Quickview {
                         Timetable.NextLessonsubtitleText = ("in " + timelefthours + " and " + timeleftminutes + " Minutes");
                     }
 
-
-
-
                     break;
-
-
                 }
-
             }
-            if(Timetable.happeningNowsubjectText.equals("") && Timetable.NextLessonsubjectText.equals("")){
+            if (Timetable.happeningNowsubjectText.equals("") && Timetable.NextLessonsubjectText.equals("")) {
                 Timetable.happeningNowsubjectText = "Nothing.";
                 Timetable.happeningNowsubtitleText = "You're finished for the day.";
                 Timetable.NextLessonsubjectText = "Nothing.";
                 Timetable.NextLessonsubtitleText = "You're finished for the day.";
-            }
-            else{
-                if(Timetable.happeningNowsubjectText.equals("")){
+            } else {
+                if (Timetable.happeningNowsubjectText.equals("")) {
                     Timetable.happeningNowsubjectText = "Nothing.";
                     Timetable.happeningNowsubtitleText = "College hasn't started yet.";
                 }
-                if(Timetable.NextLessonsubjectText.equals("")){
+                if (Timetable.NextLessonsubjectText.equals("")) {
                     Timetable.NextLessonsubjectText = "Nothing.";
                     Timetable.NextLessonsubtitleText = "You're finished for the day.";
                 }
             }
 
-
-
-
-            if(Timetable.happeningNow){
+            if (Timetable.happeningNow) {
                 topTextView.setText(Timetable.happeningNowprefixText);
                 middleTextView.setText(Timetable.happeningNowsubjectText);
                 bottomTextView.setText(Timetable.happeningNowsubtitleText);
-            }
-            else{
+            } else {
                 topTextView.setText(Timetable.nextLessonprefixText);
                 middleTextView.setText(Timetable.NextLessonsubjectText);
                 bottomTextView.setText(Timetable.NextLessonsubtitleText);
@@ -1096,27 +927,25 @@ class Quickview {
             divider.setVisibility(View.GONE);
         }
 
-
         ;
-
-
     }
-
-
 }
 
 class addToServer extends AsyncTask<Void, Void, Void> {
     FriendDatabaseObject y;
     String key;
     Context ctx;
-    public addToServer(String key, FriendDatabaseObject y, Context ctx){this.y = y; this.key = key; this.ctx = ctx;}
 
-    protected Void doInBackground(Void... x){
+    public addToServer(String key, FriendDatabaseObject y, Context ctx) {
+        this.y = y;
+        this.key = key;
+        this.ctx = ctx;
+    }
 
+    protected Void doInBackground(Void... x) {
 
         try {
             Client client = new OrchestrateClient("3e21631e-63cf-4b9e-b227-beabb7eab90a");
-
 
             client.kv("Frees", key).put(y).on(new ResponseAdapter<KvMetadata>() {
                 @Override
@@ -1127,17 +956,14 @@ class addToServer extends AsyncTask<Void, Void, Void> {
                 @Override
                 public void onFailure(Throwable error) {
                     super.onFailure(error);
-
                 }
             });
-        }
-        catch(Throwable e){
+        } catch (Throwable e) {
             e.printStackTrace();
         }
 
         return null;
     }
-
 }
 
 

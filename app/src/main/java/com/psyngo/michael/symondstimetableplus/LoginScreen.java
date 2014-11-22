@@ -33,6 +33,7 @@ public class LoginScreen extends ActionBarActivity {
     DataHandler db;
     static public int viewstate = 0;
     static List<String[]> accs = new ArrayList<String[]>();
+    static String username;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -141,6 +142,7 @@ public class LoginScreen extends ActionBarActivity {
 
                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                     Timetable.started = false;
+                    username = accs.get(position)[0];
                     Intent intent = new Intent(rootView.getContext(), Timetable.class);
                     intent.putExtra("timetableHTML", accs.get(position)[2]);
                     rootView.getContext().startActivity(intent);
@@ -163,6 +165,8 @@ public class LoginScreen extends ActionBarActivity {
 
         String username = usernameEdit.getText().toString();
         String password = passwordEdit.getText().toString();
+
+        this.username = username;
 
         String ProcessLoginForm = "true";
         String signin = "Sign In";
