@@ -141,9 +141,11 @@ public class GetSymondsTimetable extends AsyncTask<String, Void, String> {
                     content.put("username", username);
                     content.put("password", password);
                     content.put("html", arg);
+                    content.put("date", Timetable.getWeekDate(Jsoup.parse(arg)));
+                    content.put("uptodate", 1);
                     handler.db.update("atable", content, "username='" + username + "'", null);
                 } else {
-                    long id = handler.insertData(username, password, arg);
+                    long id = handler.insertData(username, password, arg, Timetable.getWeekDate(Jsoup.parse(arg)), 1);
                 }
 
                 handler.close();

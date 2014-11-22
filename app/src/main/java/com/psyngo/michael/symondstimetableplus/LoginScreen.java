@@ -24,7 +24,6 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.List;
 
-
 public class LoginScreen extends ActionBarActivity {
 
     static LinearLayout newAc;
@@ -39,7 +38,6 @@ public class LoginScreen extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-
         setContentView(R.layout.activity_login_screen);
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
@@ -53,27 +51,18 @@ public class LoginScreen extends ActionBarActivity {
         db = new DataHandler(getBaseContext());
         db.open();
         Cursor C = db.returnData();
-        if(C.moveToFirst()){
+        if (C.moveToFirst()) {
             viewstate = 1;
-            do{
+            do {
                 user = C.getString(0);
                 pass = C.getString(1);
                 html = C.getString(2);
                 accs.add(new String[]{user, pass, html});
-
             }
-            while(C.moveToNext());
+            while (C.moveToNext());
         }
         db.close();
-
-
-
-
-
-
-
     }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -105,7 +94,7 @@ public class LoginScreen extends ActionBarActivity {
 
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                Bundle savedInstanceState) {
+                                 Bundle savedInstanceState) {
             final View rootView = inflater.inflate(R.layout.fragment_login_screen, container, false);
             Typeface robotoLight = Typeface.createFromAsset(rootView.getContext().getAssets(), "fonts/Roboto-Light.ttf");
             EditText usernameEdit = (EditText) rootView.findViewById(R.id.username);
@@ -119,19 +108,18 @@ public class LoginScreen extends ActionBarActivity {
             newAc = (LinearLayout) rootView.findViewById(R.id.loginLinearLayout);
             existingAc = (LinearLayout) rootView.findViewById(R.id.existingAccountLinLayout);
             loading = (RelativeLayout) rootView.findViewById(R.id.LoadingRelLayout);
-            if(viewstate == 0){
+            if (viewstate == 0) {
                 newAc.setVisibility(View.VISIBLE);
                 loading.setVisibility(View.INVISIBLE);
                 existingAc.setVisibility(View.INVISIBLE);
-            }
-            else if (viewstate == 1){
+            } else if (viewstate == 1) {
                 newAc.setVisibility(View.INVISIBLE);
                 loading.setVisibility(View.INVISIBLE);
                 existingAc.setVisibility(View.VISIBLE);
             }
 
             List<String> usernames = new ArrayList<String>();
-            for(String[] s : accs){
+            for (String[] s : accs) {
                 usernames.add(s[0]);
             }
 
@@ -146,11 +134,6 @@ public class LoginScreen extends ActionBarActivity {
                     Intent intent = new Intent(rootView.getContext(), Timetable.class);
                     intent.putExtra("timetableHTML", accs.get(position)[2]);
                     rootView.getContext().startActivity(intent);
-
-
-
-
-
                 }
             });
             return rootView;
@@ -162,7 +145,6 @@ public class LoginScreen extends ActionBarActivity {
         EditText passwordEdit = (EditText) findViewById(R.id.password);
         View root = view.getRootView();
 
-
         String username = usernameEdit.getText().toString();
         String password = passwordEdit.getText().toString();
 
@@ -172,21 +154,13 @@ public class LoginScreen extends ActionBarActivity {
         String signin = "Sign In";
         GetSymondsTimetable post = new GetSymondsTimetable(this, root);
         post.execute(ProcessLoginForm, username, password, signin);
-
-
-
     }
 
-    public void onNew(View view){
+    public void onNew(View view) {
         loading.setVisibility(View.INVISIBLE);
         newAc.setVisibility(View.VISIBLE);
         existingAc.setVisibility(View.INVISIBLE);
     }
-
-
-
-
-
 }
 
 class accountListAdapter extends ArrayAdapter<String> {
@@ -206,10 +180,7 @@ class accountListAdapter extends ArrayAdapter<String> {
         View itemView = convertView;
         if (itemView == null) {
 
-
             itemView = mInflater.inflate(R.layout.simple, parent, false);
-
-
         }
 
         String name = objects.get(position);
@@ -219,14 +190,9 @@ class accountListAdapter extends ArrayAdapter<String> {
         tv.setText(name);
         ImageView i = (ImageView) itemView.findViewById(R.id.imageView);
 
-
         i.setBackgroundDrawable(itemView.getResources().getDrawable(R.drawable.ic_arrow));
 
-
-
-
         return itemView;
-
     }
 }
 

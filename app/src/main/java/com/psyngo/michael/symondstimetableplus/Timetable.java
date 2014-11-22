@@ -147,11 +147,11 @@ public class Timetable extends ActionBarActivity
         Friday = deleteFrees(Friday);
 
         for (FriendList fl : AddAFriend_Activity.friends) {
-            Monday = addFriendsFreePeriods(Monday, fl.getValue().getMonday(), fl.getKey());
-            Tuesday = addFriendsFreePeriods(Tuesday, fl.getValue().getTuesday(), fl.getKey());
-            Wednesday = addFriendsFreePeriods(Wednesday, fl.getValue().getWednesday(), fl.getKey());
-            Thursday = addFriendsFreePeriods(Thursday, fl.getValue().getThursday(), fl.getKey());
-            Friday = addFriendsFreePeriods(Friday, fl.getValue().getFriday(), fl.getKey());
+            Monday = addFriendsFreePeriods(Monday, fl.getValue().getMonday(), fl.getValue().getName());
+            Tuesday = addFriendsFreePeriods(Tuesday, fl.getValue().getTuesday(), fl.getValue().getName());
+            Wednesday = addFriendsFreePeriods(Wednesday, fl.getValue().getWednesday(), fl.getValue().getName());
+            Thursday = addFriendsFreePeriods(Thursday, fl.getValue().getThursday(), fl.getValue().getName());
+            Friday = addFriendsFreePeriods(Friday, fl.getValue().getFriday(), fl.getValue().getName());
         }
     }
 
@@ -467,7 +467,7 @@ public class Timetable extends ActionBarActivity
         ats.execute();
     }
 
-    public String getWeekDate(Document doc) {
+    static public String getWeekDate(Document doc) {
         Elements div = doc.select("#TimetableTitle");
         Elements h3 = div.select("h3");
         String fullTitle = h3.text();
@@ -510,7 +510,7 @@ public class Timetable extends ActionBarActivity
         if (clickedLesson.getLessonName().equals("Free Period")) {
             detailIntent = new Intent(v.getContext(), Detail_FreePeriod_Activity.class);
             for (String s : clickedLesson.getWhoElseFree()) {
-                Log.d("xxxxxx", s);
+
             }
         } else {
             detailIntent = new Intent(v.getContext(), DetailActivity.class);

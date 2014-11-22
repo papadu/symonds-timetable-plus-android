@@ -15,10 +15,11 @@ public class DataHandler {
 
 
     private static final String ACCOUNTS_TABLE_NAME = "atable";
-    private static final String ACCOUNTS_TABLE_CREATE = "create table atable (username text not null, password text not null, html text not null);";
+    private static final String ACCOUNTS_TABLE_CREATE = "create table atable (username text not null, password text not null, html text not null, date text not null, uptodate int not null);";
     private static final String USERNAME = "username";
     private static final String PASSWORD = "password";
     private static final String HTML = "html";
+    private static final String UPTODATE = "uptodate";
 
     private static final String FRIENDS_TABLE_NAME = "friendstable";
 
@@ -72,17 +73,39 @@ public class DataHandler {
         dbhelper.close();
     }
 
-    public long insertData(String username, String password, String html) {
+    public long insertData(String username, String password, String html, String date, int uptodate) {
 
         ContentValues content = new ContentValues();
         content.put(USERNAME, username);
         content.put(PASSWORD, password);
         content.put(HTML, html);
+        content.put(DATE, date);
+        content.put(UPTODATE, uptodate);
         return db.insertOrThrow(ACCOUNTS_TABLE_NAME, null, content);
     }
 
+    public long insertFriendData(String username, String name, String date, String monday, String tuesday, String wednesday, String thursday, String friday) {
+
+        ContentValues content = new ContentValues();
+        content.put(USERNAME, username);
+        content.put(NAME, name);
+        content.put(DATE, date);
+
+        content.put(MONDAY, monday);
+        content.put(TUESDAY, tuesday);
+        content.put(WEDNESDAY, wednesday);
+        content.put(THURSDAY, thursday);
+        content.put(FRIDAY, friday);
+
+        return db.insertOrThrow(FRIENDS_TABLE_NAME, null, content);
+    }
+
     public Cursor returnData() {
-        return db.query(ACCOUNTS_TABLE_NAME, new String[]{USERNAME, PASSWORD, HTML}, null, null, null, null, null);
+        return db.query(ACCOUNTS_TABLE_NAME, new String[]{USERNAME, PASSWORD, HTML, DATE, UPTODATE}, null, null, null, null, null);
+    }
+
+    public Cursor returnFriendData() {
+        return db.query(FRIENDS_TABLE_NAME, new String[]{USERNAME, NAME, DATE, MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY}, null, null, null, null, null);
     }
 
 }
