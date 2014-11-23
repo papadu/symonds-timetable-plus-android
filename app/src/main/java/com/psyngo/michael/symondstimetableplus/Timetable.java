@@ -5,8 +5,10 @@ import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
 import android.animation.ValueAnimator;
 import android.app.Activity;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.Typeface;
@@ -463,8 +465,16 @@ public class Timetable extends ActionBarActivity
         FriendDatabaseObject value = new FriendDatabaseObject(name, date, mondayFrees, tuesdayFrees, wednesdayFrees, thursdayFrees, fridayFrees);
         String key = LoginScreen.username;
 
-        addToServer ats = new addToServer(key, value, getApplicationContext());
-        ats.execute();
+        DataHandler handler = new DataHandler(getApplicationContext());
+        handler.open();
+        String query = "SELECT * FROM atable WHERE username = '" + LoginScreen.username + "'";
+        Cursor data = handler.db.rawQuery(query, null);
+        if (data.moveToFirst()) {
+            if (data.getInt(4) == 1) {
+                addToServer ats = new addToServer(key, value, getApplicationContext());
+                ats.execute();
+            }
+        }
     }
 
     static public String getWeekDate(Document doc) {
@@ -946,13 +956,27 @@ class addToServer extends AsyncTask<Void, Void, Void> {
 
     protected Void doInBackground(Void... x) {
 
+
+
         try {
             Client client = new OrchestrateClient("3e21631e-63cf-4b9e-b227-beabb7eab90a");
 
             client.kv("Frees", key).put(y).on(new ResponseAdapter<KvMetadata>() {
                 @Override
                 public void onSuccess(KvMetadata object) {
+                    Log.e("myapp", "added to server." + key);
                     super.onSuccess(object);
+                    DataHandler handler = new DataHandler(ctx);
+                    handler.open();
+                    String query = "SELECT * FROM atable WHERE username = '" + key + "'";
+                    Cursor data = handler.db.rawQuery(query, null);
+                    ContentValues content = new ContentValues();
+                    if (data.moveToFirst()) {
+                        content.put("uptodate", 2);
+                        handler.db.update("atable", content, "username='" + key + "'", null);
+                        Log.e("myapp", "added to database (2)");
+                    }
+                    handler.close();
                 }
 
                 @Override

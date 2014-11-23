@@ -44,6 +44,7 @@ public class LoginScreen extends ActionBarActivity {
     static String username;
     static boolean offlinemode;
     static View rootView;
+    static int  uptodate;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -148,7 +149,8 @@ public class LoginScreen extends ActionBarActivity {
                     Timetable.started = false;
                     username = accs.get(position)[0];
                     String password = accs.get(position)[1];
-                    if (accs.get(position)[4].equals("1")) {
+                    String uptodate = accs.get(position)[4];
+                    if (uptodate.equals("1") || uptodate.equals("2")) {
                         getFriendsList l = new getFriendsList(rootView.getContext(), view, accs.get(position)[2]);
                         l.execute();
                     } else {
