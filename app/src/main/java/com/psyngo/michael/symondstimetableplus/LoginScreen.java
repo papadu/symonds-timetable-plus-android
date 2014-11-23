@@ -42,6 +42,7 @@ public class LoginScreen extends ActionBarActivity {
     static public int viewstate = 0;
     static List<String[]> accs = new ArrayList<String[]>();
     static String username;
+    static boolean offlinemode;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -268,6 +269,7 @@ class getFriendsList extends AsyncTask<Void, Void, Void> {
     protected void onPostExecute(Void a) {
         if (!pinged) {
             Toast.makeText(ctx, "Not connected to the internet. Must be online to see Friends.", Toast.LENGTH_LONG).show();
+            LoginScreen.offlinemode = true;
         }
         if (!success) {
             Toast.makeText(ctx, "Error Getting Friends.", Toast.LENGTH_LONG).show();

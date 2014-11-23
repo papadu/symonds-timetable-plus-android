@@ -128,6 +128,21 @@ class getListOfNames extends AsyncTask<Void, Void, ArrayList<FriendList>> {
             pinged = false;
         }
 
+        if(LoginScreen.offlinemode && pinged){
+            try {
+                Iterable<KvObject<FriendDatabaseObject>> results =
+                        client.relation("Frees", LoginScreen.username)
+                                .get(FriendDatabaseObject.class, "friends")
+                                .get(10, TimeUnit.SECONDS);
+                for (KvObject<FriendDatabaseObject> i : results) {
+                    AddAFriend_Activity.friends.add(new FriendList(i.getKey(), i.getValue()));
+                }
+                LoginScreen.offlinemode = false;
+            } catch (Throwable e){
+
+            }
+        }
+
         KvList<FriendDatabaseObject> l;
 
         if (pinged) {

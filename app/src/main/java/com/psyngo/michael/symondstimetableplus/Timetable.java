@@ -921,10 +921,12 @@ class Quickview {
                 bottomTextView.setText(Timetable.NextLessonsubtitleText);
             }
         } else {
+
             middleTextView.setVisibility(View.GONE);
             bottomTextView.setVisibility(View.GONE);
             topTextView.setVisibility(View.GONE);
             divider.setVisibility(View.GONE);
+
         }
 
         ;
