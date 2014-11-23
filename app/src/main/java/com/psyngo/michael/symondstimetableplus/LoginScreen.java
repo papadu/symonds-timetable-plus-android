@@ -43,6 +43,7 @@ public class LoginScreen extends ActionBarActivity {
     static List<String[]> accs = new ArrayList<String[]>();
     static String username;
     static boolean offlinemode;
+    static View rootView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -110,6 +111,7 @@ public class LoginScreen extends ActionBarActivity {
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
             final View rootView = inflater.inflate(R.layout.fragment_login_screen, container, false);
+            LoginScreen.rootView = rootView;
             Typeface robotoLight = Typeface.createFromAsset(rootView.getContext().getAssets(), "fonts/Roboto-Light.ttf");
             EditText usernameEdit = (EditText) rootView.findViewById(R.id.username);
             EditText passwordEdit = (EditText) rootView.findViewById(R.id.password);
@@ -145,9 +147,14 @@ public class LoginScreen extends ActionBarActivity {
                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                     Timetable.started = false;
                     username = accs.get(position)[0];
-                    getFriendsList l = new getFriendsList(rootView.getContext(), view, accs.get(position)[2]);
-                    l.execute();
-
+                    String password = accs.get(position)[1];
+                    if (accs.get(position)[4].equals("1")) {
+                        getFriendsList l = new getFriendsList(rootView.getContext(), view, accs.get(position)[2]);
+                        l.execute();
+                    } else {
+                        GetSymondsTimetable x = new GetSymondsTimetable(rootView.getContext(), LoginScreen.rootView);
+                        x.execute(username, password);
+                    }
                 }
             });
             return rootView;
@@ -164,10 +171,8 @@ public class LoginScreen extends ActionBarActivity {
 
         this.username = username;
 
-        String ProcessLoginForm = "true";
-        String signin = "Sign In";
         GetSymondsTimetable post = new GetSymondsTimetable(this, root);
-        post.execute(ProcessLoginForm, username, password, signin);
+        post.execute(username, password);
     }
 
     public void onNew(View view) {
@@ -224,14 +229,14 @@ class getFriendsList extends AsyncTask<Void, Void, Void> {
         this.view = view;
         this.ctx = ctx;
         this.html = html;
-        if(view!=null) {
+        if (view != null) {
             i = (ImageView) view.findViewById(R.id.imageView);
             p = (ProgressBar) view.findViewById(R.id.LoginprogressBar);
         }
     }
 
     protected void onPreExecute() {
-        if(view!=null) {
+        if (view != null) {
             i.setVisibility(View.INVISIBLE);
             p.setVisibility(View.VISIBLE);
         }
@@ -239,14 +244,15 @@ class getFriendsList extends AsyncTask<Void, Void, Void> {
 
     protected Void doInBackground(Void... params) {
         Client client = new OrchestrateClient("3e21631e-63cf-4b9e-b227-beabb7eab90a");
-            try {
-                client.ping();
-                pinged = true;
-            } catch (Throwable e) {
-                e.printStackTrace();
-                pinged = false;
-            }
-        if(pinged){
+        try {
+            client.ping();
+            pinged = true;
+        } catch (Throwable e) {
+            e.printStackTrace();
+            pinged = false;
+        }
+
+        if (pinged) {
             try {
                 Iterable<KvObject<FriendDatabaseObject>> results =
                         client.relation("Frees", LoginScreen.username)
@@ -256,12 +262,11 @@ class getFriendsList extends AsyncTask<Void, Void, Void> {
                     AddAFriend_Activity.friends.add(new FriendList(i.getKey(), i.getValue()));
                 }
                 success = true;
-            } catch (Throwable e){
+            } catch (Throwable e) {
                 Log.e("myapp", e.toString());
                 success = false;
             }
         }
-
 
         return null;
     }
@@ -272,12 +277,17 @@ class getFriendsList extends AsyncTask<Void, Void, Void> {
             LoginScreen.offlinemode = true;
         }
         if (!success) {
-            Toast.makeText(ctx, "Error Getting Friends.", Toast.LENGTH_LONG).show();
+            Toast.makeText(ctx, "Error.", Toast.LENGTH_LONG).show();
         }
-        if(view!=null){
+        if (view != null) {
             i.setVisibility(View.VISIBLE);
             p.setVisibility(View.INVISIBLE);
         }
+
+        LoginScreen.newAc.setVisibility(View.INVISIBLE);
+        LoginScreen.existingAc.setVisibility(View.VISIBLE);
+        LoginScreen.loading.setVisibility(View.INVISIBLE);
+
         Intent intent = new Intent(ctx, Timetable.class);
         intent.putExtra("timetableHTML", html);
         ctx.startActivity(intent);

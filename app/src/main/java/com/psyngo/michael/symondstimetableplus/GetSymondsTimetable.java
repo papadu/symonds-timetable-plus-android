@@ -47,18 +47,28 @@ public class GetSymondsTimetable extends AsyncTask<String, Void, String> {
     RelativeLayout loadingLayout;
     TextView loadingText;
     LinearLayout loginLinear;
+    LinearLayout existingLinear;
     Activity a;
     String username;
     String password;
     DataHandler handler;
+    boolean loginScreen;
 
     protected void onPreExecute() {
         loadingLayout = (RelativeLayout) rootview.findViewById(R.id.LoadingRelLayout);
         loadingText = (TextView) rootview.findViewById(R.id.LoadingtextView);
         loginLinear = (LinearLayout) rootview.findViewById(R.id.loginLinearLayout);
+        existingLinear = (LinearLayout) rootview.findViewById(R.id.existingAccountLinLayout);
         a = (Activity) rootview.getContext();
+        if(loginLinear.getVisibility()==(View.VISIBLE)){
+            loginScreen = true;
+        }
+        else{
+            loginScreen=false;
+        }
         loginLinear.setVisibility(View.INVISIBLE);
         loadingLayout.setVisibility(View.VISIBLE);
+        existingLinear.setVisibility(View.INVISIBLE);
         loadingText.setText("Logging in...");
     }
 
@@ -66,16 +76,19 @@ public class GetSymondsTimetable extends AsyncTask<String, Void, String> {
         HttpClient httpclient = new DefaultHttpClient();
         HttpPost httppost = new HttpPost("https://intranet.psc.ac.uk/login.php");
 
+        String ProcessLoginForm = "true";
+        String signin = "Sign In";
+
         try {
             // Create HTTP POST request to Symonds Login page
             List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
-            nameValuePairs.add(new BasicNameValuePair("ProcessLoginForm", params[0]));
-            nameValuePairs.add(new BasicNameValuePair("username", params[1]));
-            nameValuePairs.add(new BasicNameValuePair("password", params[2]));
-            nameValuePairs.add(new BasicNameValuePair("signin", params[3]));
+            nameValuePairs.add(new BasicNameValuePair("ProcessLoginForm", ProcessLoginForm));
+            nameValuePairs.add(new BasicNameValuePair("username", params[0]));
+            nameValuePairs.add(new BasicNameValuePair("password", params[1]));
+            nameValuePairs.add(new BasicNameValuePair("signin", signin));
 
-            username = params[1];
-            password = params[2];
+            username = params[0];
+            password = params[1];
 
             httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
 
@@ -101,7 +114,7 @@ public class GetSymondsTimetable extends AsyncTask<String, Void, String> {
             Calendar today = Calendar.getInstance();
             int day = today.get(Calendar.DAY_OF_WEEK);
             //Get next week's Timetable
-            if(day == Calendar.SATURDAY || day == Calendar.SUNDAY){
+            if (day == Calendar.SATURDAY || day == Calendar.SUNDAY) {
                 Elements controls = doc.select("#TimetableTitle");
                 Elements forward = controls.select(".forward");
                 String forwardURL = forward.attr("href");
@@ -112,7 +125,6 @@ public class GetSymondsTimetable extends AsyncTask<String, Void, String> {
                 String newHTMLString = EntityUtils.toString(nextResponse.getEntity());
                 return newHTMLString;
             }
-
         } catch (ClientProtocolException e) {
             Log.e("myapp", e.toString());
             return null;
@@ -123,13 +135,14 @@ public class GetSymondsTimetable extends AsyncTask<String, Void, String> {
 
         return timetableHTMLstring;
     }
-
+//existing account linear set visibility
     protected void onPostExecute(String arg) {
-        loadingLayout.setVisibility(View.INVISIBLE);
         if (responseCode == 200) {
             if (title.equals("Student Intranet | Sign In")) {
                 Toast.makeText(context, "Username or password incorrect.", Toast.LENGTH_LONG).show();
                 loginLinear.setVisibility(View.VISIBLE);
+                loadingLayout.setVisibility(View.INVISIBLE);
+                existingLinear.setVisibility(View.INVISIBLE);
             } else {
                 handler = new DataHandler(context);
                 handler.open();
@@ -148,16 +161,27 @@ public class GetSymondsTimetable extends AsyncTask<String, Void, String> {
                 }
 
                 handler.close();
-
                 getFriendsList l = new getFriendsList(context, null, arg);
                 l.execute();
             }
         } else if (responseCode == 0) {
             Toast.makeText(context, "Not connected to the Internet", Toast.LENGTH_LONG).show();
-            loginLinear.setVisibility(View.VISIBLE);
+            if(loginScreen){
+                loginLinear.setVisibility(View.VISIBLE);
+            }
+            else{
+                existingLinear.setVisibility(View.VISIBLE);
+            }
+            loadingLayout.setVisibility(View.INVISIBLE);
         } else {
             Toast.makeText(context, "Error: " + responseCode, Toast.LENGTH_LONG).show();
-            loginLinear.setVisibility(View.VISIBLE);
+            if(loginScreen){
+                loginLinear.setVisibility(View.VISIBLE);
+            }
+            else{
+                existingLinear.setVisibility(View.VISIBLE);
+            }
+            loadingLayout.setVisibility(View.INVISIBLE);
         }
     }
 }
