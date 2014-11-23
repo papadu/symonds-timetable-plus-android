@@ -3,7 +3,6 @@ package com.psyngo.michael.symondstimetableplus;
 import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.Intent;
 import android.database.Cursor;
 import android.os.AsyncTask;
 import android.util.Log;
@@ -150,9 +149,8 @@ public class GetSymondsTimetable extends AsyncTask<String, Void, String> {
 
                 handler.close();
 
-                Intent intent = new Intent(context, Timetable.class);
-                intent.putExtra("timetableHTML", arg);
-                context.startActivity(intent);
+                getFriendsList l = new getFriendsList(context, null, arg);
+                l.execute();
             }
         } else if (responseCode == 0) {
             Toast.makeText(context, "Not connected to the Internet", Toast.LENGTH_LONG).show();

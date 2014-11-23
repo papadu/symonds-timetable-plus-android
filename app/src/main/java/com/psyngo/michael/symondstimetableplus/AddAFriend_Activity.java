@@ -73,8 +73,6 @@ public class AddAFriend_Activity extends ActionBarActivity {
         });
     }
 
-
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -150,8 +148,6 @@ class getListOfNames extends AsyncTask<Void, Void, ArrayList<FriendList>> {
                 }
 
                 l = AddAFriend_Activity.listOrchestrateRequest.get(20, TimeUnit.SECONDS);
-
-
 
                 for (KvObject<FriendDatabaseObject> o : l) {
                     AddAFriend_Activity.NameList.add(new FriendList(o.getKey(), o.getValue()));
