@@ -325,9 +325,6 @@ public class Timetable extends ActionBarActivity
         List<Calendar[]> wednesdayFrees = new ArrayList<Calendar[]>();
         List<Calendar[]> thursdayFrees = new ArrayList<Calendar[]>();
         List<Calendar[]> fridayFrees = new ArrayList<Calendar[]>();
-
-        List<Lesson> TodaysLessons = new ArrayList<Lesson>();
-
         int day = 1;
 
         int[] offsets = new int[rows.size()];

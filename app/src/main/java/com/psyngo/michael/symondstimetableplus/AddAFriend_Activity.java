@@ -1,6 +1,7 @@
 package com.psyngo.michael.symondstimetableplus;
 
 import android.content.Context;
+import android.graphics.Typeface;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
@@ -12,6 +13,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -35,9 +37,11 @@ public class AddAFriend_Activity extends ActionBarActivity {
     static boolean asyncRunning = false;
     static List<FriendList> NameList = new ArrayList<FriendList>();
     static nameListAdapter adapter;
-    ProgressBar pb;
+    static ProgressBar pb;
     static ListView addFriendList;
     static OrchestrateRequest<KvList<FriendDatabaseObject>> listOrchestrateRequest;
+    static LinearLayout errorView;
+    static TextView errorTextView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,6 +49,11 @@ public class AddAFriend_Activity extends ActionBarActivity {
         setContentView(R.layout.activity_add_afriend_);
         addFriendList = (ListView) findViewById(R.id.addFriendListview);
         final Context ctx = getApplicationContext();
+        Typeface robotoThin = Typeface.createFromAsset(getAssets(), "fonts/Roboto-Light.ttf");
+        errorView = (LinearLayout) findViewById(R.id.errorView);
+        errorTextView = (TextView) findViewById(R.id.ErrorTextview);
+        errorTextView.setTypeface(robotoThin);
+
 
         pb = (ProgressBar) findViewById(R.id.ListViewProgressBar);
 
@@ -92,6 +101,11 @@ public class AddAFriend_Activity extends ActionBarActivity {
         }
         return super.onOptionsItemSelected(item);
     }
+
+    public void retry(View view){
+        getListOfNames l = new getListOfNames(addFriendList, view.getRootView().getContext(), pb, false);
+        l.execute();
+    }
 }
 
 class getListOfNames extends AsyncTask<Void, Void, ArrayList<FriendList>> {
@@ -99,7 +113,7 @@ class getListOfNames extends AsyncTask<Void, Void, ArrayList<FriendList>> {
     Context ctx;
     ProgressBar pb;
     boolean pinged = false;
-    boolean success = true;
+    boolean success = false;
     boolean next = false;
 
     public getListOfNames(ListView lv, Context ctx, ProgressBar pb, boolean next) {
@@ -112,7 +126,8 @@ class getListOfNames extends AsyncTask<Void, Void, ArrayList<FriendList>> {
     protected void onPreExecute() {
         if (!next) {
             pb.setVisibility(View.VISIBLE);
-            lv.setVisibility(View.INVISIBLE);
+            lv.setVisibility(View.GONE);
+            AddAFriend_Activity.errorView.setVisibility(View.GONE);
         }
     }
 
@@ -179,21 +194,29 @@ class getListOfNames extends AsyncTask<Void, Void, ArrayList<FriendList>> {
     }
 
     protected void onPostExecute(ArrayList<FriendList> arg) {
-        if (!pinged) {
-            Toast.makeText(ctx, "Cannot reach server", Toast.LENGTH_LONG).show();
-        }
-        if (success) {
+        if(pinged){
+            if (success) {
 
-            if (!next) {
-                AddAFriend_Activity.adapter = new nameListAdapter(ctx, R.layout.simple, AddAFriend_Activity.NameList);
-                AddAFriend_Activity.addFriendList.setAdapter(AddAFriend_Activity.adapter);
+                if (!next) {
+                    AddAFriend_Activity.adapter = new nameListAdapter(ctx, R.layout.simple, AddAFriend_Activity.NameList);
+                    AddAFriend_Activity.addFriendList.setAdapter(AddAFriend_Activity.adapter);
+                }
+
+                AddAFriend_Activity.adapter.notifyDataSetChanged();
+
+                lv.setVisibility(View.VISIBLE);
+                AddAFriend_Activity.errorView.setVisibility(View.GONE);
             }
-
-            AddAFriend_Activity.adapter.notifyDataSetChanged();
-
-            lv.setVisibility(View.VISIBLE);
-        } else {
-            Toast.makeText(ctx, "Operation Timed out, try again.", Toast.LENGTH_LONG).show();
+            else {
+                AddAFriend_Activity.errorView.setVisibility(View.VISIBLE);
+                lv.setVisibility(View.GONE);
+                AddAFriend_Activity.errorTextView.setText("Something went wrong.");
+            }
+        }
+        else{
+            AddAFriend_Activity.errorView.setVisibility(View.VISIBLE);
+            lv.setVisibility(View.GONE);
+            AddAFriend_Activity.errorTextView.setText("Can't reach server.");
         }
         pb.setVisibility(View.INVISIBLE);
     }

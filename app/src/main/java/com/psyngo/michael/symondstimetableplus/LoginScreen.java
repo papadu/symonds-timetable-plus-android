@@ -1,6 +1,8 @@
 package com.psyngo.michael.symondstimetableplus;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Typeface;
@@ -23,7 +25,6 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,6 +46,9 @@ public class LoginScreen extends ActionBarActivity {
     static boolean offlinemode;
     static View rootView;
     static int  uptodate;
+
+    static String asyncHtml;
+    static View asyncView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -182,6 +186,37 @@ public class LoginScreen extends ActionBarActivity {
         newAc.setVisibility(View.VISIBLE);
         existingAc.setVisibility(View.INVISIBLE);
     }
+
+    static public void openAlert(View view) {
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(rootView.getContext());
+
+        alertDialogBuilder.setTitle("No Internet connection.");
+        alertDialogBuilder.setMessage("You must be online to see your friends' frees.");
+        // set positive button: Yes message
+        alertDialogBuilder.setNegativeButton("Login anyway",new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog,int id) {
+                Intent intent = new Intent(rootView.getContext(), Timetable.class);
+                intent.putExtra("timetableHTML", LoginScreen.asyncHtml);
+                rootView.getContext().startActivity(intent);
+                dialog.cancel();
+            }
+        });
+        // set negative button: No message
+        alertDialogBuilder.setPositiveButton("Retry",new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog,int id) {
+                getFriendsList l = new getFriendsList(rootView.getContext(), LoginScreen.asyncView, asyncHtml);
+                l.execute();
+                dialog.cancel();
+
+            }
+        });
+
+        AlertDialog alertDialog = alertDialogBuilder.create();
+        // show alert
+        alertDialog.show();
+    }
+
+
 }
 
 class accountListAdapter extends ArrayAdapter<String> {
@@ -274,25 +309,31 @@ class getFriendsList extends AsyncTask<Void, Void, Void> {
     }
 
     protected void onPostExecute(Void a) {
-        if (!pinged) {
-            Toast.makeText(ctx, "Not connected to the internet. Must be online to see Friends.", Toast.LENGTH_LONG).show();
-            LoginScreen.offlinemode = true;
-        }
-        if (!success) {
-            Toast.makeText(ctx, "Error.", Toast.LENGTH_LONG).show();
+
+        if (success) {
+
         }
         if (view != null) {
             i.setVisibility(View.VISIBLE);
             p.setVisibility(View.INVISIBLE);
         }
-
+        LoginScreen.asyncHtml = html;
+        LoginScreen.asyncView = view;
         LoginScreen.newAc.setVisibility(View.INVISIBLE);
         LoginScreen.existingAc.setVisibility(View.VISIBLE);
         LoginScreen.loading.setVisibility(View.INVISIBLE);
 
-        Intent intent = new Intent(ctx, Timetable.class);
-        intent.putExtra("timetableHTML", html);
-        ctx.startActivity(intent);
+        if (pinged) {
+            Intent intent = new Intent(ctx, Timetable.class);
+            intent.putExtra("timetableHTML", html);
+            ctx.startActivity(intent);
+        }
+        else{
+            LoginScreen.offlinemode = true;
+            LoginScreen.openAlert(LoginScreen.rootView);
+        }
+
+
     }
 }
 

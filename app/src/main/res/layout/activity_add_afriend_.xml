@@ -14,6 +14,34 @@
         android:layout_width="fill_parent"
         android:layout_height="fill_parent">
 
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:gravity="center_vertical|center_horizontal"
+            android:visibility="invisible"
+            android:id="@+id/errorView"
+            >
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:text="Can&apos;t reach server."
+                android:id="@+id/ErrorTextview"
+                android:textColor="#ffffff"
+                android:padding="10dp"/>
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Retry"
+                android:id="@+id/retryButton"
+                android:textColor="#ffffff"
+                android:background="#18D4B3"
+                android:onClick="retry"/>
+        </LinearLayout>
+
         <ListView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -26,5 +54,6 @@
             android:id="@+id/ListViewProgressBar"
             android:layout_gravity="center"
             android:visibility="invisible" />
+
     </FrameLayout>
 </LinearLayout>
