@@ -5,6 +5,8 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
+
+
     <application
         android:name=".MyApplication"
 
@@ -15,6 +17,9 @@
         android:theme="@style/AppTheme" >
         <meta-data android:name="com.google.android.gms.analytics.globalConfigResource"
         android:resource="@xml/global_tracker" />
+
+        <provider android:authorities="com.psyngo.michael.symondstimetableplus.user_accounts"
+                  android:name=".DbContentProvider"/>
 
         <activity
             android:name=".LoginScreen"

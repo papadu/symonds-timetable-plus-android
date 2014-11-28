@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
 import android.view.View;
@@ -144,23 +145,24 @@ public class GetSymondsTimetable extends AsyncTask<String, Void, String> {
                 loadingLayout.setVisibility(View.INVISIBLE);
                 existingLinear.setVisibility(View.INVISIBLE);
             } else {
-                handler = new DataHandler(context);
-                handler.open();
+                Uri contentUri = Uri.withAppendedPath(DbContentProvider.CONTENT_URI, "atable");
+
+                ContentValues content = new ContentValues();
+                content.put("username", username);
+                content.put("password", password);
+                content.put("html", arg);
+                content.put("date", Timetable.getWeekDate(Jsoup.parse(arg)));
+                content.put("uptodate", 1);
+
                 String query = "SELECT * FROM atable WHERE username = '" + username + "'";
-                Cursor data = handler.db.rawQuery(query, null);
+                Cursor data = context.getContentResolver().query(contentUri, new String[]{"username"}, "username = '"+username+"'",null,null);
+
                 if (data.moveToFirst()) {
-                    ContentValues content = new ContentValues();
-                    content.put("username", username);
-                    content.put("password", password);
-                    content.put("html", arg);
-                    content.put("date", Timetable.getWeekDate(Jsoup.parse(arg)));
-                    content.put("uptodate", 1);
-                    handler.db.update("atable", content, "username='" + username + "'", null);
+                    int updateResult = context.getContentResolver().update(contentUri, content, "username='?'", new String[]{username});
                 } else {
-                    long id = handler.insertData(username, password, arg, Timetable.getWeekDate(Jsoup.parse(arg)), 1);
+                    Uri resultUri = context.getContentResolver().insert(contentUri, content);
                 }
 
-                handler.close();
                 getFriendsList l = new getFriendsList(context, null, arg);
                 l.execute();
             }
