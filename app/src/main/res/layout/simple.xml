@@ -5,17 +5,35 @@
     android:layout_height="72dp"
     android:paddingLeft="10dp"
     android:paddingRight="20dp"
-    android:background="#00b0a51f">
+    android:background="#00ba8302">
 
-    <TextView
+    <LinearLayout
+        android:orientation="vertical"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Michael Brown"
-        android:id="@+id/nametextView"
+        android:layout_height="fill_parent"
         android:layout_gravity="center_vertical"
-        android:textColor="#ffffff"
-        />
+        android:gravity="center_vertical"
+        >
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="Michael Brown"
+            android:id="@+id/nametextView"
+            android:layout_gravity="center_vertical"
+            android:textColor="#ffffff"
+            />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:text="Out of date."
+            android:id="@+id/dateTextview"
+            android:textColor="#ffffff"
+            android:visibility="visible"/>
+    </LinearLayout>
 
     <LinearLayout
         android:orientation="vertical"

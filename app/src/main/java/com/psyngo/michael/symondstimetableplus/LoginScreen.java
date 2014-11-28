@@ -43,6 +43,7 @@ public class LoginScreen extends ActionBarActivity {
     static public int viewstate = 0;
     static List<String[]> accs = new ArrayList<String[]>();
     static String username;
+    static String date;
     static boolean offlinemode;
     static View rootView;
     static int  uptodate;
@@ -140,11 +141,14 @@ public class LoginScreen extends ActionBarActivity {
             }
 
             List<String> usernames = new ArrayList<String>();
+            List<String> dates = new ArrayList<String>();
             for (String[] s : accs) {
                 usernames.add(s[0]);
+                dates.add(s[3]);
             }
 
-            accountListAdapter adapter = new accountListAdapter(rootView.getContext(), R.layout.simple, usernames);
+
+            accountListAdapter adapter = new accountListAdapter(rootView.getContext(), R.layout.simple, usernames, dates);
             accountsList.setAdapter(adapter);
 
             accountsList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -221,13 +225,15 @@ public class LoginScreen extends ActionBarActivity {
 
 class accountListAdapter extends ArrayAdapter<String> {
     List<String> objects;
+    List<String> dates;
     Context context;
     LayoutInflater mInflater;
 
-    public accountListAdapter(Context context, int resource, List<String> objects) {
+    public accountListAdapter(Context context, int resource, List<String> objects, List<String> dates) {
         super(context, resource, objects);
         this.objects = objects;
         this.context = context;
+        this.dates = dates;
         mInflater = LayoutInflater.from(context);
     }
 
@@ -240,7 +246,11 @@ class accountListAdapter extends ArrayAdapter<String> {
         }
 
         String name = objects.get(position);
+        String date = dates.get(position);
         TextView tv = (TextView) itemView.findViewById(R.id.nametextView);
+        TextView dtv = (TextView) itemView.findViewById(R.id.dateTextview);
+        dtv.setVisibility(View.VISIBLE);
+        dtv.setText(date);
         Typeface robotoLight = Typeface.createFromAsset(itemView.getContext().getAssets(), "fonts/Roboto-Light.ttf");
         tv.setTypeface(robotoLight);
         tv.setText(name);

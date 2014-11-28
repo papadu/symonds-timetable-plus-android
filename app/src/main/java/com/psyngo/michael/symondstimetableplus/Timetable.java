@@ -320,11 +320,11 @@ public class Timetable extends ActionBarActivity
         Thursday = new ArrayList<Lesson>();
         Friday = new ArrayList<Lesson>();
 
-        List<Calendar[]> mondayFrees = new ArrayList<Calendar[]>();
-        List<Calendar[]> tuesdayFrees = new ArrayList<Calendar[]>();
-        List<Calendar[]> wednesdayFrees = new ArrayList<Calendar[]>();
-        List<Calendar[]> thursdayFrees = new ArrayList<Calendar[]>();
-        List<Calendar[]> fridayFrees = new ArrayList<Calendar[]>();
+        List<Calendar[]> mondayFrees;
+        List<Calendar[]> tuesdayFrees;
+        List<Calendar[]> wednesdayFrees;
+        List<Calendar[]> thursdayFrees;
+        List<Calendar[]> fridayFrees;
         int day = 1;
 
         int[] offsets = new int[rows.size()];
