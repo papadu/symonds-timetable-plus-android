@@ -31,7 +31,8 @@
             android:text="at 09:25"
             android:id="@+id/timeTV"
             android:textColor="#ffffff"
-            android:layout_marginLeft="5dp" />
+            android:layout_marginLeft="5dp"
+           />
     </LinearLayout>
 
     <TextView
@@ -45,6 +46,8 @@
     <ListView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/whoElseFreeListview" />
+        android:id="@+id/whoElseFreeListview"
+        android:divider="#2effffff"
+        android:dividerHeight="1px"/>
 
 </LinearLayout>

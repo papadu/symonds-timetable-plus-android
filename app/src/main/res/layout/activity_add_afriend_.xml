@@ -45,7 +45,9 @@
         <ListView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/addFriendListview" />
+            android:id="@+id/addFriendListview"
+            android:divider="#2effffff"
+            android:dividerHeight="1px"/>
 
         <ProgressBar
             style="?android:attr/progressBarStyleLarge"
