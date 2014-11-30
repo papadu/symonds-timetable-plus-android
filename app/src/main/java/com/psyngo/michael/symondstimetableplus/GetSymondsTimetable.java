@@ -146,19 +146,18 @@ public class GetSymondsTimetable extends AsyncTask<String, Void, String> {
                 existingLinear.setVisibility(View.INVISIBLE);
             } else {
                 Uri contentUri = Uri.withAppendedPath(DbContentProvider.CONTENT_URI, "atable");
-
+                LoginScreen.date = Timetable.getWeekDate(Jsoup.parse(arg));
                 ContentValues content = new ContentValues();
                 content.put("username", username);
                 content.put("password", password);
                 content.put("html", arg);
-                content.put("date", Timetable.getWeekDate(Jsoup.parse(arg)));
+                content.put("date", LoginScreen.date);
                 content.put("uptodate", 1);
 
-                String query = "SELECT * FROM atable WHERE username = '" + username + "'";
-                Cursor data = context.getContentResolver().query(contentUri, new String[]{"username"}, "username = '"+username+"'",null,null);
+                Cursor data = context.getContentResolver().query(contentUri, null, "username = '"+username+"'",null,null);
 
                 if (data.moveToFirst()) {
-                    int updateResult = context.getContentResolver().update(contentUri, content, "username='?'", new String[]{username});
+                    int updateResult = context.getContentResolver().update(contentUri, content, "username='"+username+"'", null);
                 } else {
                     Uri resultUri = context.getContentResolver().insert(contentUri, content);
                 }

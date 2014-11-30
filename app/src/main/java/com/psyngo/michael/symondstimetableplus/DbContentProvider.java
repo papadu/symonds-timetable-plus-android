@@ -12,6 +12,7 @@ public class DbContentProvider extends ContentProvider {
     DataHandler dbHelper;
     public static final String AUTHORITY = "com.psyngo.michael.symondstimetableplus.user_accounts";
     public static final Uri CONTENT_URI = Uri.parse("content://" + AUTHORITY);
+    public static final Uri ATABLE_URI = Uri.withAppendedPath(DbContentProvider.CONTENT_URI, "atable");
 
     @Override
     public boolean onCreate() {

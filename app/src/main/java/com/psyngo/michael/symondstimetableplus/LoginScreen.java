@@ -1,6 +1,7 @@
 package com.psyngo.michael.symondstimetableplus;
 
 import android.app.AlertDialog;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -26,7 +27,10 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -41,7 +45,6 @@ public class LoginScreen extends ActionBarActivity {
     static RelativeLayout loading;
     DataHandler db;
     static public int viewstate = 0;
-    static List<String[]> accs = new ArrayList<String[]>();
     static String username;
     static String date;
     static boolean offlinemode;
@@ -61,28 +64,35 @@ public class LoginScreen extends ActionBarActivity {
                     .add(R.id.container, new PlaceholderFragment())
                     .commit();
         }
-
-        String user;
-        String pass;
-        String html;
-        String date;
-        int uptodate;
-        db = new DataHandler(getBaseContext());
-        db.open();
-        Cursor C = db.returnData();
+        Cursor C = getContentResolver().query(DbContentProvider.ATABLE_URI, null, null, null, null);
         if (C.moveToFirst()) {
             viewstate = 1;
             do {
-                user = C.getString(0);
-                pass = C.getString(1);
-                html = C.getString(2);
-                date = C.getString(3);
-                uptodate = C.getInt(4);
-                accs.add(new String[]{user, pass, html, date, String.valueOf(uptodate)});
+                String formatDate = C.getString(3).split("to ")[1];
+                Log.e("myapp", formatDate);
+                Calendar endDate = Calendar.getInstance();
+                Calendar todaysDate = Calendar.getInstance();
+                try{
+                    endDate.setTime(new SimpleDateFormat("d MMMMM yyyy").parse(formatDate));
+                } catch (ParseException e){
+                    e.printStackTrace();
+                }
+                endDate.set(Calendar.HOUR_OF_DAY, 0);
+                endDate.add(Calendar.DAY_OF_WEEK, -1);
+                Log.e("myapp", new SimpleDateFormat("HH:mm dd MMMM yyyy").format(endDate.getTime()));
+                Log.e("myapp", new SimpleDateFormat("HH:mm dd MMMM yyyy").format(todaysDate.getTime()));
+                ContentValues content = new ContentValues();
+                if (todaysDate.after(endDate)){
+                    Log.e("myapp", "after");
+                    content.put("uptodate", 0);
+                    getContentResolver().update(DbContentProvider.ATABLE_URI, content, "username='"+C.getString(0)+"'", null);
+                }
+                else{
+                    Log.e("myapp", "not after");
+                }
             }
             while (C.moveToNext());
         }
-        db.close();
     }
 
     @Override
@@ -142,9 +152,12 @@ public class LoginScreen extends ActionBarActivity {
 
             List<String> usernames = new ArrayList<String>();
             List<String> dates = new ArrayList<String>();
-            for (String[] s : accs) {
-                usernames.add(s[0]);
-                dates.add(s[3]);
+            Cursor C = rootView.getContext().getContentResolver().query(DbContentProvider.ATABLE_URI, null, null, null, null);
+            if(C.moveToFirst()){
+                do{
+                    usernames.add(C.getString(0));
+                    dates.add(C.getString(3));
+                } while(C.moveToNext());
             }
 
 
@@ -155,16 +168,26 @@ public class LoginScreen extends ActionBarActivity {
 
                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                     Timetable.started = false;
-                    username = accs.get(position)[0];
-                    String password = accs.get(position)[1];
-                    String uptodate = accs.get(position)[4];
-                    if (uptodate.equals("1") || uptodate.equals("2")) {
-                        getFriendsList l = new getFriendsList(rootView.getContext(), view, accs.get(position)[2]);
-                        l.execute();
-                    } else {
-                        GetSymondsTimetable x = new GetSymondsTimetable(rootView.getContext(), LoginScreen.rootView);
-                        x.execute(username, password);
+                    TextView user = (TextView) view.findViewById(R.id.nametextView);
+                    username = user.getText().toString();
+                    Cursor C = view.getContext().getContentResolver().query(DbContentProvider.ATABLE_URI, null, "username='"+username+"'", null, null);
+                    if(C.moveToFirst()){
+                        String password = C.getString(1);
+                        date = C.getString(3);
+                        int uptodate = C.getInt(4);
+                        String html = C.getString(2);
+
+                        if (uptodate==1 || uptodate==2) {
+                            getFriendsList l = new getFriendsList(rootView.getContext(), view, html);
+                            l.execute();
+                        } else {
+                            GetSymondsTimetable x = new GetSymondsTimetable(rootView.getContext(), LoginScreen.rootView);
+                            x.execute(username, password);
+                        }
                     }
+
+
+
                 }
             });
             return rootView;

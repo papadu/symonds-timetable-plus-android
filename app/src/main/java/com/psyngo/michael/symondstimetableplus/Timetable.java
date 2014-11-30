@@ -930,9 +930,9 @@ class Quickview {
         } else {
 
             Timetable.happeningNowsubjectText = "Nothing.";
-            Timetable.happeningNowsubtitleText = "...It's the weekend.";
+            Timetable.happeningNowsubtitleText = "It's the weekend.";
             Timetable.NextLessonsubjectText = "Nothing.";
-            Timetable.NextLessonsubtitleText = "...It's the weekend.";
+            Timetable.NextLessonsubtitleText = "It's the weekend.";
 
             if (Timetable.happeningNow) {
                 topTextView.setText(Timetable.happeningNowprefixText);

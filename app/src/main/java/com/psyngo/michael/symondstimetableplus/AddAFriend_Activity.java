@@ -239,9 +239,18 @@ class nameListAdapter extends ArrayAdapter<FriendList> {
         }
         String key = objects.get(position).getKey();
         String name = objects.get(position).getValue().getName();
+        String date = objects.get(position).getValue().getDate();
         TextView tv = (TextView) itemView.findViewById(R.id.nametextView);
+        TextView dtv = (TextView) itemView.findViewById(R.id.dateTextview);
         tv.setText(WordUtils.capitalizeFully(name));
         ImageView i = (ImageView) itemView.findViewById(R.id.imageView);
+        if(date.equals(LoginScreen.date)){
+            dtv.setVisibility(View.GONE);
+        }
+        else{
+            dtv.setVisibility(View.VISIBLE);
+            dtv.setText("Last Updated - " + date.substring(0, date.length()-5) + ".");
+        }
 
         itemView.setTag(0);
         i.setBackgroundDrawable(itemView.getResources().getDrawable(R.drawable.ic_action_add_person));
