@@ -929,11 +929,20 @@ class Quickview {
             }
         } else {
 
-            middleTextView.setVisibility(View.GONE);
-            bottomTextView.setVisibility(View.GONE);
-            topTextView.setVisibility(View.GONE);
-            divider.setVisibility(View.GONE);
+            Timetable.happeningNowsubjectText = "Nothing.";
+            Timetable.happeningNowsubtitleText = "...It's the weekend.";
+            Timetable.NextLessonsubjectText = "Nothing.";
+            Timetable.NextLessonsubtitleText = "...It's the weekend.";
 
+            if (Timetable.happeningNow) {
+                topTextView.setText(Timetable.happeningNowprefixText);
+                middleTextView.setText(Timetable.happeningNowsubjectText);
+                bottomTextView.setText(Timetable.happeningNowsubtitleText);
+            } else {
+                topTextView.setText(Timetable.nextLessonprefixText);
+                middleTextView.setText(Timetable.NextLessonsubjectText);
+                bottomTextView.setText(Timetable.NextLessonsubtitleText);
+            }
         }
 
         ;
@@ -952,8 +961,6 @@ class addToServer extends AsyncTask<Void, Void, Void> {
     }
 
     protected Void doInBackground(Void... x) {
-
-
 
         try {
             Client client = new OrchestrateClient("3e21631e-63cf-4b9e-b227-beabb7eab90a");

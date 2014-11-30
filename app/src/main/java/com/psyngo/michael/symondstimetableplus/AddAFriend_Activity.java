@@ -54,7 +54,6 @@ public class AddAFriend_Activity extends ActionBarActivity {
         errorTextView = (TextView) findViewById(R.id.ErrorTextview);
         errorTextView.setTypeface(robotoThin);
 
-
         pb = (ProgressBar) findViewById(R.id.ListViewProgressBar);
 
         getListOfNames l = new getListOfNames(addFriendList, ctx, pb, false);
@@ -102,7 +101,7 @@ public class AddAFriend_Activity extends ActionBarActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    public void retry(View view){
+    public void retry(View view) {
         getListOfNames l = new getListOfNames(addFriendList, view.getRootView().getContext(), pb, false);
         l.execute();
     }
@@ -143,7 +142,7 @@ class getListOfNames extends AsyncTask<Void, Void, ArrayList<FriendList>> {
             pinged = false;
         }
 
-        if(LoginScreen.offlinemode && pinged){
+        if (LoginScreen.offlinemode && pinged) {
             try {
                 Iterable<KvObject<FriendDatabaseObject>> results =
                         client.relation("Frees", LoginScreen.username)
@@ -153,7 +152,7 @@ class getListOfNames extends AsyncTask<Void, Void, ArrayList<FriendList>> {
                     AddAFriend_Activity.friends.add(new FriendList(i.getKey(), i.getValue()));
                 }
                 LoginScreen.offlinemode = false;
-            } catch (Throwable e){
+            } catch (Throwable e) {
 
             }
         }
@@ -194,7 +193,7 @@ class getListOfNames extends AsyncTask<Void, Void, ArrayList<FriendList>> {
     }
 
     protected void onPostExecute(ArrayList<FriendList> arg) {
-        if(pinged){
+        if (pinged) {
             if (success) {
 
                 if (!next) {
@@ -206,14 +205,12 @@ class getListOfNames extends AsyncTask<Void, Void, ArrayList<FriendList>> {
 
                 lv.setVisibility(View.VISIBLE);
                 AddAFriend_Activity.errorView.setVisibility(View.GONE);
-            }
-            else {
+            } else {
                 AddAFriend_Activity.errorView.setVisibility(View.VISIBLE);
                 lv.setVisibility(View.GONE);
                 AddAFriend_Activity.errorTextView.setText("Something went wrong.");
             }
-        }
-        else{
+        } else {
             AddAFriend_Activity.errorView.setVisibility(View.VISIBLE);
             lv.setVisibility(View.GONE);
             AddAFriend_Activity.errorTextView.setText("Can't reach server.");
@@ -316,6 +313,7 @@ class addFriend extends AsyncTask<Void, Void, Void> {
         } else {
             try {
                 if (pinged) {
+
                     boolean result = client.relation("Frees", LoginScreen.username)
                             .to("Frees", friend.getKey())
                             .purge("friends")
