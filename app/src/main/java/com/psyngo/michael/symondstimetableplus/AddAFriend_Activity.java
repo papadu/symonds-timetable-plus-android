@@ -326,8 +326,15 @@ class addFriend extends AsyncTask<Void, Void, Void> {
 
             i.setBackgroundDrawable(ctx.getResources().getDrawable(R.drawable.ic_action_add_person));
             view.setTag(0);
+            int index = -1;
+            for (int i = 0; i< AddAFriend_Activity.friends.size(); i++){
+                if(AddAFriend_Activity.friends.get(i).getKey().equals(friend.getKey())){
+                    index = i;
+                    break;
+                }
+            }
 
-            AddAFriend_Activity.friends.remove(friend);
+            AddAFriend_Activity.friends.remove(index);
         }
 
         return null;
