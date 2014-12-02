@@ -22,87 +22,93 @@ ADDED from AndroidManifest.xml:6:5
 	android:name
 		ADDED from AndroidManifest.xml:6:22
 application
-ADDED from AndroidManifest.xml:8:5
+ADDED from AndroidManifest.xml:10:5
 MERGED from com.android.support:appcompat-v7:20.0.0:17:5
 MERGED from com.android.support:support-v4:20.0.0:17:5
 MERGED from com.google.android.gms:play-services:6.1.71:16:5
 MERGED from com.android.support:support-v4:20.0.0:17:5
 	android:label
-		ADDED from AndroidManifest.xml:13:9
-	android:allowBackup
-		ADDED from AndroidManifest.xml:11:9
-	android:icon
-		ADDED from AndroidManifest.xml:12:9
-	android:theme
 		ADDED from AndroidManifest.xml:15:9
-	android:logo
+	android:allowBackup
+		ADDED from AndroidManifest.xml:13:9
+	android:icon
 		ADDED from AndroidManifest.xml:14:9
-	android:name
-		ADDED from AndroidManifest.xml:9:9
-meta-data#com.google.android.gms.analytics.globalConfigResource
-ADDED from AndroidManifest.xml:16:9
-	android:resource
+	android:theme
 		ADDED from AndroidManifest.xml:17:9
+	android:logo
+		ADDED from AndroidManifest.xml:16:9
 	android:name
-		ADDED from AndroidManifest.xml:16:20
+		ADDED from AndroidManifest.xml:11:9
+meta-data#com.google.android.gms.analytics.globalConfigResource
+ADDED from AndroidManifest.xml:18:9
+	android:resource
+		ADDED from AndroidManifest.xml:19:9
+	android:name
+		ADDED from AndroidManifest.xml:18:20
+provider#com.psyngo.michael.symondstimetableplus.DbContentProvider
+ADDED from AndroidManifest.xml:21:9
+	android:authorities
+		ADDED from AndroidManifest.xml:21:19
+	android:name
+		ADDED from AndroidManifest.xml:22:19
 activity#com.psyngo.michael.symondstimetableplus.LoginScreen
-ADDED from AndroidManifest.xml:19:9
+ADDED from AndroidManifest.xml:24:9
 	android:label
-		ADDED from AndroidManifest.xml:21:13
+		ADDED from AndroidManifest.xml:26:13
 	android:name
-		ADDED from AndroidManifest.xml:20:13
+		ADDED from AndroidManifest.xml:25:13
 intent-filter#android.intent.action.MAIN+android.intent.category.LAUNCHER
-ADDED from AndroidManifest.xml:22:13
+ADDED from AndroidManifest.xml:27:13
 action#android.intent.action.MAIN
-ADDED from AndroidManifest.xml:23:17
+ADDED from AndroidManifest.xml:28:17
 	android:name
-		ADDED from AndroidManifest.xml:23:25
+		ADDED from AndroidManifest.xml:28:25
 category#android.intent.category.LAUNCHER
-ADDED from AndroidManifest.xml:25:17
+ADDED from AndroidManifest.xml:30:17
 	android:name
-		ADDED from AndroidManifest.xml:25:27
+		ADDED from AndroidManifest.xml:30:27
 activity#com.psyngo.michael.symondstimetableplus.Timetable
-ADDED from AndroidManifest.xml:28:9
+ADDED from AndroidManifest.xml:33:9
 	android:label
-		ADDED from AndroidManifest.xml:30:13
-	android:name
-		ADDED from AndroidManifest.xml:29:13
-activity#com.psyngo.michael.symondstimetableplus.DetailActivity
-ADDED from AndroidManifest.xml:32:9
-	android:label
-		ADDED from AndroidManifest.xml:34:13
-	android:parentActivityName
 		ADDED from AndroidManifest.xml:35:13
 	android:name
-		ADDED from AndroidManifest.xml:33:13
+		ADDED from AndroidManifest.xml:34:13
+activity#com.psyngo.michael.symondstimetableplus.DetailActivity
+ADDED from AndroidManifest.xml:37:9
+	android:label
+		ADDED from AndroidManifest.xml:39:13
+	android:parentActivityName
+		ADDED from AndroidManifest.xml:40:13
+	android:name
+		ADDED from AndroidManifest.xml:38:13
 meta-data#android.support.PARENT_ACTIVITY
-ADDED from AndroidManifest.xml:36:13
+ADDED from AndroidManifest.xml:41:13
 	android:value
-		ADDED from AndroidManifest.xml:38:17
+		ADDED from AndroidManifest.xml:43:17
 	android:name
-		ADDED from AndroidManifest.xml:37:17
+		ADDED from AndroidManifest.xml:42:17
 activity#com.psyngo.michael.symondstimetableplus.Detail_FreePeriod_Activity
-ADDED from AndroidManifest.xml:40:9
+ADDED from AndroidManifest.xml:45:9
 	android:label
-		ADDED from AndroidManifest.xml:42:13
+		ADDED from AndroidManifest.xml:47:13
 	android:parentActivityName
-		ADDED from AndroidManifest.xml:43:13
+		ADDED from AndroidManifest.xml:48:13
 	android:name
-		ADDED from AndroidManifest.xml:41:13
+		ADDED from AndroidManifest.xml:46:13
 activity#com.psyngo.michael.symondstimetableplus.AddAFriend_Activity
-ADDED from AndroidManifest.xml:48:9
+ADDED from AndroidManifest.xml:53:9
 	android:label
-		ADDED from AndroidManifest.xml:50:13
+		ADDED from AndroidManifest.xml:55:13
 	android:parentActivityName
-		ADDED from AndroidManifest.xml:51:13
+		ADDED from AndroidManifest.xml:56:13
 	android:name
-		ADDED from AndroidManifest.xml:49:13
+		ADDED from AndroidManifest.xml:54:13
 meta-data#android.app.searchable
-ADDED from AndroidManifest.xml:55:13
+ADDED from AndroidManifest.xml:60:13
 	android:resource
-		ADDED from AndroidManifest.xml:56:17
+		ADDED from AndroidManifest.xml:61:17
 	android:name
-		ADDED from AndroidManifest.xml:55:24
+		ADDED from AndroidManifest.xml:60:24
 uses-sdk
 INJECTED from AndroidManifest.xml:0:0 reason: use-sdk injection requested
 MERGED from com.android.support:appcompat-v7:20.0.0:16:5

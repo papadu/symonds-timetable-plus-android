@@ -581,9 +581,6 @@ public class Timetable extends ActionBarActivity
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-        if (id == R.id.action_settings) {
-            return true;
-        }
         if (id == R.id.action_add_friend) {
             Intent intent = new Intent(root.getContext(), AddAFriend_Activity.class);
             startActivity(intent);
@@ -757,7 +754,7 @@ public class Timetable extends ActionBarActivity
 
                         String sub = "";
                         if (les.getWhoElseFree().size() == 0) {
-                            sub = "Noone.";
+                            sub = "No-one.";
                         }
                         if (les.getWhoElseFree().size() == 1) {
                             sub = WordUtils.capitalizeFully(les.getWhoElseFree().get(0).split(" ")[0]) + ".";
@@ -869,7 +866,7 @@ class Quickview {
                     if (les.getLessonName().equals("Free Period")) {
                         String sub = "With ";
                         if (les.getWhoElseFree().size() == 0) {
-                            sub += "Noone.";
+                            sub += "No-one.";
                         }
                         if (les.getWhoElseFree().size() == 1) {
                             sub += WordUtils.capitalizeFully(les.getWhoElseFree().get(0).split(" ")[0]) + ".";
@@ -929,10 +926,10 @@ class Quickview {
             }
         } else {
 
-            Timetable.happeningNowsubjectText = "Nothing.";
-            Timetable.happeningNowsubtitleText = "It's the weekend.";
-            Timetable.NextLessonsubjectText = "Nothing.";
-            Timetable.NextLessonsubtitleText = "It's the weekend.";
+            Timetable.happeningNowsubjectText = "Nothing";
+            Timetable.happeningNowsubtitleText = "It's the Weekend.";
+            Timetable.NextLessonsubjectText = "Nothing";
+            Timetable.NextLessonsubtitleText = "It's the Weekend.";
 
             if (Timetable.happeningNow) {
                 topTextView.setText(Timetable.happeningNowprefixText);

@@ -109,9 +109,6 @@ public class LoginScreen extends ActionBarActivity {
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-        if (id == R.id.action_settings) {
-            return true;
-        }
         return super.onOptionsItemSelected(item);
     }
 
@@ -292,8 +289,8 @@ class getFriendsList extends AsyncTask<Void, Void, Void> {
     String html;
     ImageView i;
     ProgressBar p;
-    boolean pinged = true;
-    boolean success = true;
+    boolean pinged = false;
+    boolean success = false;
 
     public getFriendsList(Context ctx, View view, String html) {
         this.view = view;
