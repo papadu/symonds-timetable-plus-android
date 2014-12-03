@@ -321,10 +321,13 @@ class getFriendsList extends AsyncTask<Void, Void, Void> {
 
         if (pinged) {
             try {
+                //Get Friends List from Server.
                 Iterable<KvObject<FriendDatabaseObject>> results =
                         client.relation("Frees", LoginScreen.username)
+                                .limit(60)
                                 .get(FriendDatabaseObject.class, "friends")
                                 .get(10, TimeUnit.SECONDS);
+                //Loop through result, add each friend to local friend list
                 for (KvObject<FriendDatabaseObject> i : results) {
                     AddAFriend_Activity.friends.add(new FriendList(i.getKey(), i.getValue()));
                 }
@@ -340,9 +343,7 @@ class getFriendsList extends AsyncTask<Void, Void, Void> {
 
     protected void onPostExecute(Void a) {
 
-        if (success) {
 
-        }
         if (view != null) {
             i.setVisibility(View.VISIBLE);
             p.setVisibility(View.INVISIBLE);
@@ -353,7 +354,7 @@ class getFriendsList extends AsyncTask<Void, Void, Void> {
         LoginScreen.existingAc.setVisibility(View.VISIBLE);
         LoginScreen.loading.setVisibility(View.INVISIBLE);
 
-        if (pinged) {
+        if (success) {
             Intent intent = new Intent(ctx, Timetable.class);
             intent.putExtra("timetableHTML", html);
             ctx.startActivity(intent);
