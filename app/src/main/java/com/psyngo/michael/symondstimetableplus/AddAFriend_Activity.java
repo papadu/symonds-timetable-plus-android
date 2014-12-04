@@ -144,10 +144,19 @@ class getListOfNames extends AsyncTask<Void, Void, ArrayList<FriendList>> {
             try {
                 Iterable<KvObject<FriendDatabaseObject>> results =
                         client.relation("Frees", LoginScreen.username)
+                                .limit(60)
                                 .get(FriendDatabaseObject.class, "friends")
                                 .get(10, TimeUnit.SECONDS);
                 for (KvObject<FriendDatabaseObject> i : results) {
-                    AddAFriend_Activity.friends.add(new FriendList(i.getKey(), i.getValue()));
+                    boolean alreadyFriend = false;
+                    for(int x = 0; x < AddAFriend_Activity.friends.size(); x++){
+                        if(AddAFriend_Activity.friends.get(x).getKey().equals(i.getKey())){
+                            alreadyFriend=true;
+                        }
+                    }
+                    if(!alreadyFriend){
+                        AddAFriend_Activity.friends.add(new FriendList(i.getKey(), i.getValue()));
+                    }
                 }
                 LoginScreen.offlinemode = false;
             } catch (Throwable e) {
@@ -325,6 +334,7 @@ class addFriend extends AsyncTask<Void, Void, Void> {
                             .to("Frees", friend.getKey())
                             .purge("friends")
                             .get(10, TimeUnit.SECONDS);
+                    success=true;
                 }
             } catch (Throwable e) {
                 e.printStackTrace();
@@ -337,11 +347,11 @@ class addFriend extends AsyncTask<Void, Void, Void> {
             for (int i = 0; i< AddAFriend_Activity.friends.size(); i++){
                 if(AddAFriend_Activity.friends.get(i).getKey().equals(friend.getKey())){
                     index = i;
-                    break;
+                    AddAFriend_Activity.friends.remove(index);
                 }
             }
 
-            AddAFriend_Activity.friends.remove(index);
+
         }
 
         return null;
