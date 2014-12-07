@@ -251,13 +251,8 @@ class nameListAdapter extends ArrayAdapter<FriendList> {
         TextView dtv = (TextView) itemView.findViewById(R.id.dateTextview);
         tv.setText(WordUtils.capitalizeFully(name));
         ImageView i = (ImageView) itemView.findViewById(R.id.imageView);
-        if(date.equals(LoginScreen.date)){
-            dtv.setVisibility(View.GONE);
-        }
-        else{
-            dtv.setVisibility(View.VISIBLE);
-            dtv.setText("Last Updated - " + date.substring(0, date.length()-5) + ".");
-        }
+        dtv.setVisibility(View.GONE);
+
 
         itemView.setTag(0);
         i.setBackgroundDrawable(itemView.getResources().getDrawable(R.drawable.ic_action_add_person));
@@ -266,8 +261,16 @@ class nameListAdapter extends ArrayAdapter<FriendList> {
             if (x.getKey().equals(key)) {
                 i.setBackgroundDrawable(itemView.getResources().getDrawable(R.drawable.ic_action_done));
                 itemView.setTag(1);
+                dtv.setVisibility(View.VISIBLE);
+                if(date.equals(LoginScreen.date)){
+                    dtv.setText("Up to date.");
+                }
+                else{
+                    dtv.setText("Last Updated - " + date.substring(0, date.length()-5) + ".");
+                }
                 break;
             }
+
         }
 
         return itemView;
@@ -281,6 +284,7 @@ class addFriend extends AsyncTask<Void, Void, Void> {
     View view;
     ImageView i;
     ProgressBar p;
+    TextView dtv;
     boolean pinged = true;
     boolean success = true;
 
@@ -290,6 +294,7 @@ class addFriend extends AsyncTask<Void, Void, Void> {
         this.friend = friend;
         i = (ImageView) view.findViewById(R.id.imageView);
         p = (ProgressBar) view.findViewById(R.id.LoginprogressBar);
+        dtv = (TextView) view.findViewById(R.id.dateTextview);
     }
 
     protected void onPreExecute() {
@@ -320,6 +325,7 @@ class addFriend extends AsyncTask<Void, Void, Void> {
                     AddAFriend_Activity.friends.add(friend);
                     view.setTag(1);
                     i.setBackgroundDrawable(ctx.getResources().getDrawable(R.drawable.ic_action_done));
+
                     success = true;
                 }
             } catch (Throwable e) {
@@ -361,7 +367,20 @@ class addFriend extends AsyncTask<Void, Void, Void> {
         if (!pinged) {
             Toast.makeText(ctx, "Cannot reach server", Toast.LENGTH_SHORT).show();
         }
-        if (!success) {
+        if(success) {
+            if (view.getTag().equals(0)) {
+                dtv.setVisibility(View.GONE);
+            } else {
+                String date = friend.getValue().getDate();
+                dtv.setVisibility(View.VISIBLE);
+                if (date.equals(LoginScreen.date)) {
+                    dtv.setText("Up to date.");
+                } else {
+                    dtv.setText("Last Updated - " + date.substring(0, date.length() - 5) + ".");
+                }
+            }
+        }
+        else{
             Toast.makeText(ctx, "Operation timed out, try again.", Toast.LENGTH_SHORT).show();
         }
         i.setVisibility(View.VISIBLE);
