@@ -34,6 +34,7 @@ import android.view.animation.DecelerateInterpolator;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.analytics.GoogleAnalytics;
 
@@ -584,6 +585,19 @@ public class Timetable extends ActionBarActivity
         if (id == R.id.action_add_friend) {
             Intent intent = new Intent(root.getContext(), AddAFriend_Activity.class);
             startActivity(intent);
+            return true;
+        }
+        if (id == R.id.action_report_bug) {
+            Intent i = new Intent(Intent.ACTION_SEND);
+            i.setType("message/rfc822");
+            i.putExtra(Intent.EXTRA_EMAIL  , new String[]{"michaeljbrown.6@gmail.com"});
+            i.putExtra(Intent.EXTRA_SUBJECT, "Bug report");
+            i.putExtra(Intent.EXTRA_TEXT, "Android version:\nThe Problem:");
+            try {
+                startActivity(Intent.createChooser(i, "Send mail..."));
+            } catch (android.content.ActivityNotFoundException ex) {
+                Toast.makeText(Timetable.this, "There are no email clients installed.", Toast.LENGTH_SHORT).show();
+            }
             return true;
         }
         return super.onOptionsItemSelected(item);

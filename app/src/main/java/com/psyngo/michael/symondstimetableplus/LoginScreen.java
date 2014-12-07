@@ -26,6 +26,7 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -109,6 +110,19 @@ public class LoginScreen extends ActionBarActivity {
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
+        if (id == R.id.action_report_bug) {
+            Intent i = new Intent(Intent.ACTION_SEND);
+            i.setType("message/rfc822");
+            i.putExtra(Intent.EXTRA_EMAIL  , new String[]{"michaeljbrown.6@gmail.com"});
+            i.putExtra(Intent.EXTRA_SUBJECT, "Bug report");
+            i.putExtra(Intent.EXTRA_TEXT, "Android version:\nThe Problem:");
+            try {
+                startActivity(Intent.createChooser(i, "Send mail..."));
+            } catch (android.content.ActivityNotFoundException ex) {
+                Toast.makeText(LoginScreen.this, "There are no email clients installed.", Toast.LENGTH_SHORT).show();
+            }
+            return true;
+        }
         return super.onOptionsItemSelected(item);
     }
 
@@ -311,15 +325,13 @@ class getFriendsList extends AsyncTask<Void, Void, Void> {
 
     protected Void doInBackground(Void... params) {
         Client client = new OrchestrateClient("3e21631e-63cf-4b9e-b227-beabb7eab90a");
-        try {
+        try{
             client.ping();
             pinged = true;
-        } catch (Throwable e) {
-            e.printStackTrace();
+        }catch (Throwable e){
+            Log.e("myapp", e.toString());
             pinged = false;
         }
-
-        if (pinged) {
             try {
                 //Get Friends List from Server.
                 Iterable<KvObject<FriendDatabaseObject>> results =
@@ -336,7 +348,7 @@ class getFriendsList extends AsyncTask<Void, Void, Void> {
                 Log.e("myapp", e.toString());
                 success = false;
             }
-        }
+
 
         return null;
     }
@@ -362,6 +374,7 @@ class getFriendsList extends AsyncTask<Void, Void, Void> {
         else{
             LoginScreen.offlinemode = true;
             LoginScreen.openAlert(LoginScreen.rootView);
+
         }
 
 

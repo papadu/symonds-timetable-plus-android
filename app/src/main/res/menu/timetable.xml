@@ -8,4 +8,10 @@
         android:icon="@drawable/ic_action_add_person"
         app:showAsAction="always"
         android:title="Add a friend"/>
+
+    <item
+        android:id="@+id/action_report_bug"
+        android:icon="@drawable/ic_action_email"
+        android:title="Report a bug"
+        />
 </menu>

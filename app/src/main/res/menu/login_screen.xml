@@ -3,4 +3,14 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context=".LoginScreen" >
 
+
+
+
+
+    <item
+        android:id="@+id/action_report_bug"
+        android:icon="@drawable/ic_action_email"
+        android:title="Report a bug"
+        />
+
 </menu>
