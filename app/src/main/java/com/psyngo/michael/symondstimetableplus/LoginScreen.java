@@ -329,7 +329,7 @@ class getFriendsList extends AsyncTask<Void, Void, Void> {
             client.ping();
             pinged = true;
         }catch (Throwable e){
-            Log.e("myapp", e.toString());
+            e.printStackTrace();
             pinged = false;
         }
             try {

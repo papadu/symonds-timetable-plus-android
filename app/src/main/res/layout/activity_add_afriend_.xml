@@ -57,5 +57,18 @@
             android:layout_gravity="center"
             android:visibility="invisible" />
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="Nope, no-one here by the name of "
+            android:id="@+id/noSearchTextview"
+            android:layout_gravity="center"
+            android:gravity="center_horizontal"
+            android:paddingLeft="20dp"
+            android:paddingRight="20dp"
+            android:textColor="#ffffff"
+            android:visibility="invisible"/>
+
     </FrameLayout>
 </LinearLayout>

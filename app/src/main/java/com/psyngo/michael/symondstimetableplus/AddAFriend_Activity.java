@@ -1,21 +1,25 @@
 package com.psyngo.michael.symondstimetableplus;
 
+import android.app.SearchManager;
 import android.content.Context;
 import android.graphics.Typeface;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -30,6 +34,8 @@ import io.orchestrate.client.KvList;
 import io.orchestrate.client.KvObject;
 import io.orchestrate.client.OrchestrateClient;
 import io.orchestrate.client.OrchestrateRequest;
+import io.orchestrate.client.Result;
+import io.orchestrate.client.SearchResults;
 
 public class AddAFriend_Activity extends ActionBarActivity {
 
@@ -42,6 +48,8 @@ public class AddAFriend_Activity extends ActionBarActivity {
     static OrchestrateRequest<KvList<FriendDatabaseObject>> listOrchestrateRequest;
     static LinearLayout errorView;
     static TextView errorTextView;
+    static boolean isSearchList = false;
+    static TextView noSearchTv;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,10 +61,12 @@ public class AddAFriend_Activity extends ActionBarActivity {
         errorView = (LinearLayout) findViewById(R.id.errorView);
         errorTextView = (TextView) findViewById(R.id.ErrorTextview);
         errorTextView.setTypeface(robotoThin);
+        noSearchTv = (TextView) findViewById(R.id.noSearchTextview);
+        noSearchTv.setVisibility(View.INVISIBLE);
 
         pb = (ProgressBar) findViewById(R.id.ListViewProgressBar);
 
-        getListOfNames l = new getListOfNames(addFriendList, ctx, pb, false);
+        getListOfNames l = new getListOfNames(addFriendList, ctx, pb, false, "");
         l.execute();
 
         addFriendList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -74,9 +84,10 @@ public class AddAFriend_Activity extends ActionBarActivity {
         addFriendList.setOnScrollListener(new InfiniteScrollListener(2) {
             @Override
             public void loadMore(int page, int totalItemsCount) {
-
-                getListOfNames l = new getListOfNames(addFriendList, ctx, pb, true);
-                l.execute();
+                if(!isSearchList) {
+                    getListOfNames l = new getListOfNames(addFriendList, ctx, pb, true, "");
+                    l.execute();
+                }
             }
         });
     }
@@ -85,6 +96,38 @@ public class AddAFriend_Activity extends ActionBarActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.add_afriend_, menu);
+
+        SearchManager manager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+
+        SearchView search = (SearchView) menu.findItem(R.id.friend_search).getActionView();
+        if (search.equals(null)) {
+            Log.e("myapp", "null");
+        } else {
+
+            search.setSearchableInfo(manager.getSearchableInfo(getComponentName()));
+
+            search.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+                @Override
+                public boolean onQueryTextChange(String newText) {
+                    return false;
+                }
+
+                @Override
+                public boolean onQueryTextSubmit(String query) {
+                    InputMethodManager inputManager = (InputMethodManager)
+                            getSystemService(Context.INPUT_METHOD_SERVICE);
+
+                    inputManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(),
+                            InputMethodManager.HIDE_NOT_ALWAYS);
+
+                    AddAFriend_Activity.noSearchTv.setVisibility(View.INVISIBLE);
+                    isSearchList = true;
+                    getListOfNames l = new getListOfNames(addFriendList, getApplicationContext(), pb, false, query);
+                    l.execute();
+                    return false;
+                }
+            });
+        }
 
         return true;
     }
@@ -100,7 +143,7 @@ public class AddAFriend_Activity extends ActionBarActivity {
     }
 
     public void retry(View view) {
-        getListOfNames l = new getListOfNames(addFriendList, view.getRootView().getContext(), pb, false);
+        getListOfNames l = new getListOfNames(addFriendList, view.getRootView().getContext(), pb, false, "");
         l.execute();
     }
 }
@@ -112,12 +155,15 @@ class getListOfNames extends AsyncTask<Void, Void, ArrayList<FriendList>> {
     boolean pinged = false;
     boolean success = false;
     boolean next = false;
+    boolean nosearchresults = false;
+    String query;
 
-    public getListOfNames(ListView lv, Context ctx, ProgressBar pb, boolean next) {
+    public getListOfNames(ListView lv, Context ctx, ProgressBar pb, boolean next, String query) {
         this.lv = lv;
         this.ctx = ctx;
         this.pb = pb;
         this.next = next;
+        this.query = query;
     }
 
     protected void onPreExecute() {
@@ -149,12 +195,12 @@ class getListOfNames extends AsyncTask<Void, Void, ArrayList<FriendList>> {
                                 .get(10, TimeUnit.SECONDS);
                 for (KvObject<FriendDatabaseObject> i : results) {
                     boolean alreadyFriend = false;
-                    for(int x = 0; x < AddAFriend_Activity.friends.size(); x++){
-                        if(AddAFriend_Activity.friends.get(x).getKey().equals(i.getKey())){
-                            alreadyFriend=true;
+                    for (int x = 0; x < AddAFriend_Activity.friends.size(); x++) {
+                        if (AddAFriend_Activity.friends.get(x).getKey().equals(i.getKey())) {
+                            alreadyFriend = true;
                         }
                     }
-                    if(!alreadyFriend){
+                    if (!alreadyFriend) {
                         AddAFriend_Activity.friends.add(new FriendList(i.getKey(), i.getValue()));
                     }
                 }
@@ -168,25 +214,38 @@ class getListOfNames extends AsyncTask<Void, Void, ArrayList<FriendList>> {
 
         if (pinged) {
             try {
+                if (query.equals("")) {
+                    if (next) {
+                        AddAFriend_Activity.listOrchestrateRequest = client.listCollection("Frees")
+                                .startKey(AddAFriend_Activity.NameList.get(AddAFriend_Activity.NameList.size() - 1).getKey())
+                                .limit(50)
+                                .get(FriendDatabaseObject.class);
+                    } else {
 
-                if (next) {
+                        AddAFriend_Activity.listOrchestrateRequest = client.listCollection("Frees")
+                                .limit(50)
+                                .get(FriendDatabaseObject.class);
+                        AddAFriend_Activity.NameList = new ArrayList<FriendList>();
+                    }
 
-                    AddAFriend_Activity.listOrchestrateRequest = client.listCollection("Frees")
-                            .startKey(AddAFriend_Activity.NameList.get(AddAFriend_Activity.NameList.size() - 1).getKey())
-                            .limit(50)
-                            .get(FriendDatabaseObject.class);
+                    l = AddAFriend_Activity.listOrchestrateRequest.get(20, TimeUnit.SECONDS);
+
+                    for (KvObject<FriendDatabaseObject> o : l) {
+                        AddAFriend_Activity.NameList.add(new FriendList(o.getKey(), o.getValue()));
+                    }
                 } else {
-
-                    AddAFriend_Activity.listOrchestrateRequest = client.listCollection("Frees")
-                            .limit(50)
-                            .get(FriendDatabaseObject.class);
+                    String luceneQuery = "value.name:*" + query + "*";
+                    SearchResults<FriendDatabaseObject> searchResults = client.searchCollection("Frees")
+                            .limit(20)
+                            .get(FriendDatabaseObject.class, luceneQuery)
+                            .get(15, TimeUnit.SECONDS);
                     AddAFriend_Activity.NameList = new ArrayList<FriendList>();
-                }
-
-                l = AddAFriend_Activity.listOrchestrateRequest.get(20, TimeUnit.SECONDS);
-
-                for (KvObject<FriendDatabaseObject> o : l) {
-                    AddAFriend_Activity.NameList.add(new FriendList(o.getKey(), o.getValue()));
+                    if(searchResults.getTotalCount() == 0){
+                        nosearchresults = true;
+                    }
+                    for (Result<FriendDatabaseObject> x : searchResults) {
+                        AddAFriend_Activity.NameList.add(new FriendList(x.getKvObject().getKey(), x.getKvObject().getValue()));
+                    }
                 }
 
                 success = true;
@@ -206,6 +265,11 @@ class getListOfNames extends AsyncTask<Void, Void, ArrayList<FriendList>> {
                 if (!next) {
                     AddAFriend_Activity.adapter = new nameListAdapter(ctx, R.layout.simple, AddAFriend_Activity.NameList);
                     AddAFriend_Activity.addFriendList.setAdapter(AddAFriend_Activity.adapter);
+                }
+
+                if(nosearchresults){
+                    AddAFriend_Activity.noSearchTv.setText("Nope, no-one here by the name of \"" + query + "\"");
+                    AddAFriend_Activity.noSearchTv.setVisibility(View.VISIBLE);
                 }
 
                 AddAFriend_Activity.adapter.notifyDataSetChanged();
@@ -253,7 +317,6 @@ class nameListAdapter extends ArrayAdapter<FriendList> {
         ImageView i = (ImageView) itemView.findViewById(R.id.imageView);
         dtv.setVisibility(View.GONE);
 
-
         itemView.setTag(0);
         i.setBackgroundDrawable(itemView.getResources().getDrawable(R.drawable.ic_action_add_person));
 
@@ -262,15 +325,13 @@ class nameListAdapter extends ArrayAdapter<FriendList> {
                 i.setBackgroundDrawable(itemView.getResources().getDrawable(R.drawable.ic_action_done));
                 itemView.setTag(1);
                 dtv.setVisibility(View.VISIBLE);
-                if(date.equals(LoginScreen.date)){
+                if (date.equals(LoginScreen.date)) {
                     dtv.setText("Up to date.");
-                }
-                else{
-                    dtv.setText("Last Updated - " + date.substring(0, date.length()-5) + ".");
+                } else {
+                    dtv.setText("Last Updated - " + date.substring(0, date.length() - 5) + ".");
                 }
                 break;
             }
-
         }
 
         return itemView;
@@ -340,7 +401,7 @@ class addFriend extends AsyncTask<Void, Void, Void> {
                             .to("Frees", friend.getKey())
                             .purge("friends")
                             .get(10, TimeUnit.SECONDS);
-                    success=true;
+                    success = true;
                 }
             } catch (Throwable e) {
                 e.printStackTrace();
@@ -350,14 +411,12 @@ class addFriend extends AsyncTask<Void, Void, Void> {
             i.setBackgroundDrawable(ctx.getResources().getDrawable(R.drawable.ic_action_add_person));
             view.setTag(0);
             int index = -1;
-            for (int i = 0; i< AddAFriend_Activity.friends.size(); i++){
-                if(AddAFriend_Activity.friends.get(i).getKey().equals(friend.getKey())){
+            for (int i = 0; i < AddAFriend_Activity.friends.size(); i++) {
+                if (AddAFriend_Activity.friends.get(i).getKey().equals(friend.getKey())) {
                     index = i;
                     AddAFriend_Activity.friends.remove(index);
                 }
             }
-
-
         }
 
         return null;
@@ -367,7 +426,7 @@ class addFriend extends AsyncTask<Void, Void, Void> {
         if (!pinged) {
             Toast.makeText(ctx, "Cannot reach server", Toast.LENGTH_SHORT).show();
         }
-        if(success) {
+        if (success) {
             if (view.getTag().equals(0)) {
                 dtv.setVisibility(View.GONE);
             } else {
@@ -379,8 +438,7 @@ class addFriend extends AsyncTask<Void, Void, Void> {
                     dtv.setText("Last Updated - " + date.substring(0, date.length() - 5) + ".");
                 }
             }
-        }
-        else{
+        } else {
             Toast.makeText(ctx, "Operation timed out, try again.", Toast.LENGTH_SHORT).show();
         }
         i.setVisibility(View.VISIBLE);
