@@ -63,6 +63,7 @@ public class AddAFriend_Activity extends ActionBarActivity {
         errorTextView.setTypeface(robotoThin);
         noSearchTv = (TextView) findViewById(R.id.noSearchTextview);
         noSearchTv.setVisibility(View.INVISIBLE);
+        isSearchList = false;
 
         pb = (ProgressBar) findViewById(R.id.ListViewProgressBar);
 
@@ -85,6 +86,7 @@ public class AddAFriend_Activity extends ActionBarActivity {
             @Override
             public void loadMore(int page, int totalItemsCount) {
                 if(!isSearchList) {
+                    Log.e("myapp", "executing !searchList");
                     getListOfNames l = new getListOfNames(addFriendList, ctx, pb, true, "");
                     l.execute();
                 }
@@ -215,6 +217,7 @@ class getListOfNames extends AsyncTask<Void, Void, ArrayList<FriendList>> {
         if (pinged) {
             try {
                 if (query.equals("")) {
+                    Log.e("myapp", "executing null query");
                     if (next) {
                         AddAFriend_Activity.listOrchestrateRequest = client.listCollection("Frees")
                                 .startKey(AddAFriend_Activity.NameList.get(AddAFriend_Activity.NameList.size() - 1).getKey())
