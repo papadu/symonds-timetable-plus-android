@@ -26,7 +26,8 @@
                     android:orientation="vertical"
                     android:layout_width="match_parent"
                     android:layout_height="72dp"
-                    android:id="@+id/list_item_subject_container_linearlayout" >
+                    android:id="@+id/list_item_subject_container_linearlayout"
+                    android:layout_marginLeft="4dp">
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -38,7 +39,6 @@
                         android:textSize="30sp"
                         android:typeface="sans"
                         android:textColor="#ffffffff"
-                        android:layout_marginLeft="5dp"
                         android:gravity="center_vertical"
                         android:layout_marginTop="-10dp" />
                 </LinearLayout>

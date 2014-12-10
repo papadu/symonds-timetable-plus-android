@@ -30,16 +30,16 @@
 
         <ImageView
             android:layout_width="84dp"
-            android:layout_height="1px"
+            android:layout_height="0.5dp"
             android:id="@+id/imageView"
             android:background="#4ed8d9d9"
             android:layout_gravity="center_horizontal"
-            android:layout_marginTop="-1px"
+            android:layout_marginTop="-0.5dp"
             android:layout_alignBottom="@+id/time_textview_container" />
 
         <ImageView
             android:layout_width="84dp"
-            android:layout_height="1px"
+            android:layout_height="0.5dp"
             android:id="@+id/imageView2"
             android:background="#4ed8d9d9"
             android:layout_gravity="center_horizontal"

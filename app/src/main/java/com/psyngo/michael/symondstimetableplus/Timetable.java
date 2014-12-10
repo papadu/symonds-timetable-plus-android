@@ -753,7 +753,7 @@ public class Timetable extends ActionBarActivity
                 subjectTextView.setLineSpacing(-10, 1);
 
                 LinearLayout.LayoutParams textParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.FILL_PARENT);
-                textParams.setMargins(5, -10, 0, 0);
+                textParams.setMargins(0, -10, 0, 0);
                 subjectTextView.setLayoutParams(textParams);
 
                 contParams.height = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (float) units / 55 * 72, v.getContext().getResources().getDisplayMetrics());
@@ -786,7 +786,7 @@ public class Timetable extends ActionBarActivity
                         subjectTextView.setText(txt, TextView.BufferType.SPANNABLE);
                         subjectTextView.setLineSpacing(0, 1);
 
-                        textParams.setMargins(5, 0, 0, 0);
+                        textParams.setMargins(0, 0, 0, 0);
 
                         subjectTextView.setLayoutParams(textParams);
                     }
