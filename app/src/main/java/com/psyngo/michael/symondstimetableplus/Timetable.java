@@ -68,6 +68,9 @@ public class Timetable extends ActionBarActivity
     /**
      * Used to store the last screen title. For use in {@link #restoreActionBar()}.
      */
+
+    static int mPeriodType = 0; //0 is Lesson, 1 is Free Period. (For Detail Activity).
+
     private CharSequence mTitle;
 
     static List<Lesson> Week;
@@ -162,9 +165,39 @@ public class Timetable extends ActionBarActivity
         for (Lesson les : day) {
 
             for (Calendar[] free : friendsDay) {
-                if (les.getLessonName().equals("Free Period") && les.getStartTime().getTime().getTime() >= free[0].getTime().getTime() && les.getEndTime().getTime().getTime() <= free[1].getTime().getTime()) {
+                //if friend's Free starts before/at same time, and finishes after/same time.
+                if (les.getStartTime().getTime().getTime() >= free[0].getTime().getTime()
+                        && les.getEndTime().getTime().getTime() <= free[1].getTime().getTime()) {
+
                     List<String> whosFree = les.getWhoElseFree();
                     whosFree.add(name);
+                    les.setWhoElseFree(whosFree);
+                }
+                //if friend's Free starts before/at same time, and finishes before end.
+                else if (les.getStartTime().getTime().getTime() >= free[0].getTime().getTime() &&
+                        les.getEndTime().getTime().getTime() > free[1].getTime().getTime() &&
+                        les.getStartTime().getTime().getTime() < free[1].getTime().getTime())
+                {
+
+                    List<String> whosFree = les.getWhoElseFree();
+                    whosFree.add(name + " (Until " + new SimpleDateFormat("HH:mm").format(free[1].getTime()).toString() + ")");
+                    les.setWhoElseFree(whosFree);
+                }
+                //if friend's Free starts after, and finishes after.
+                else if (les.getStartTime().getTime().getTime() <= free[0].getTime().getTime() &&
+                        les.getEndTime().getTime().getTime() > free[0].getTime().getTime() &&
+                        les.getEndTime().getTime().getTime() < free[1].getTime().getTime()){
+
+                    List<String> whosFree = les.getWhoElseFree();
+                    whosFree.add(name + " (From " + new SimpleDateFormat("HH:mm").format(free[0].getTime()).toString() + ")");
+                    les.setWhoElseFree(whosFree);
+                }
+                //if friend's Free starts after, and finishes before.
+                else if (les.getStartTime().getTime().getTime() <= free[0].getTime().getTime() &&
+                        les.getEndTime().getTime().getTime() >= free[1].getTime().getTime()){
+
+                    List<String> whosFree = les.getWhoElseFree();
+                    whosFree.add(name + " (From " + new SimpleDateFormat("HH:mm").format(free[0].getTime()).toString() + " to " + new SimpleDateFormat("HH:mm").format(free[1].getTime()).toString() + ")");
                     les.setWhoElseFree(whosFree);
                 }
             }
@@ -516,12 +549,11 @@ public class Timetable extends ActionBarActivity
         clickedLesson = todaysLessons.get(i);
         Intent detailIntent;
         if (clickedLesson.getLessonName().equals("Free Period")) {
-            detailIntent = new Intent(v.getContext(), Detail_FreePeriod_Activity.class);
-            for (String s : clickedLesson.getWhoElseFree()) {
-
-            }
+            detailIntent = new Intent(v.getContext(), LessonDetailActivity.class);
+            mPeriodType = 1;
         } else {
-            detailIntent = new Intent(v.getContext(), DetailActivity.class);
+            detailIntent = new Intent(v.getContext(), LessonDetailActivity.class);
+            mPeriodType = 0;
         }
 
         startActivity(detailIntent);

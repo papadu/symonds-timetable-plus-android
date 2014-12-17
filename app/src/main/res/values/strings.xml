@@ -25,5 +25,6 @@
     <string name="title_activity_detail">DetailActivity</string>
     <string name="title_activity_detail__free_period_">Detail_FreePeriod_Activity</string>
     <string name="title_activity_add_afriend_">AddAFriend_Activity</string>
+    <string name="title_activity_lesson_detail">LessonDetail</string>
 
 </resources>

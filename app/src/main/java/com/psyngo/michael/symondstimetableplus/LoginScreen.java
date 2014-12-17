@@ -55,6 +55,8 @@ public class LoginScreen extends ActionBarActivity {
     static String asyncHtml;
     static View asyncView;
 
+    public LoginScreen(){};
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -62,7 +64,7 @@ public class LoginScreen extends ActionBarActivity {
         setContentView(R.layout.activity_login_screen);
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.container, new PlaceholderFragment())
+                    .add(R.id.container, new LoginFragment())
                     .commit();
         }
         Cursor C = getContentResolver().query(DbContentProvider.ATABLE_URI, null, null, null, null);
@@ -126,12 +128,9 @@ public class LoginScreen extends ActionBarActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    /**
-     * A placeholder fragment containing a simple view.
-     */
-    public static class PlaceholderFragment extends Fragment {
+    public static class LoginFragment extends Fragment {
 
-        public PlaceholderFragment() {
+        public LoginFragment() {
         }
 
         @Override
@@ -166,6 +165,7 @@ public class LoginScreen extends ActionBarActivity {
             Cursor C = rootView.getContext().getContentResolver().query(DbContentProvider.ATABLE_URI, null, null, null, null);
             if(C.moveToFirst()){
                 do{
+                    Log.e(C.getString(0), C.getString(1));
                     usernames.add(C.getString(0));
                     dates.add(C.getString(3));
                 } while(C.moveToNext());
@@ -187,6 +187,7 @@ public class LoginScreen extends ActionBarActivity {
                         date = C.getString(3);
                         int uptodate = C.getInt(4);
                         String html = C.getString(2);
+
 
                         if (uptodate==1 || uptodate==2) {
                             getFriendsList l = new getFriendsList(rootView.getContext(), view, html);
