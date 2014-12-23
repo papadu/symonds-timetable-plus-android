@@ -4,7 +4,6 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
 import android.animation.ValueAnimator;
-import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -16,19 +15,17 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.widget.DrawerLayout;
+import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.view.PagerTabStrip;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
-import android.text.SpannableString;
-import android.text.style.RelativeSizeSpan;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Display;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.ImageView;
@@ -51,23 +48,20 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import io.orchestrate.client.Client;
 import io.orchestrate.client.KvMetadata;
 import io.orchestrate.client.OrchestrateClient;
 import io.orchestrate.client.ResponseAdapter;
 
-public class Timetable extends ActionBarActivity
-        implements NavigationDrawerFragment.NavigationDrawerCallbacks {
+public class Timetable extends ActionBarActivity {
+    TimetableSectionsPagerAdapter mSectionsPagerAdapter;
 
     /**
-     * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
+     * The {@link android.support.v4.view.ViewPager} that will host the section contents.
      */
-    private NavigationDrawerFragment mNavigationDrawerFragment;
-
-    /**
-     * Used to store the last screen title. For use in {@link #restoreActionBar()}.
-     */
+    ViewPager mViewPager;
 
     static int mPeriodType = 0; //0 is Lesson, 1 is Free Period. (For Detail Activity).
 
@@ -100,26 +94,48 @@ public class Timetable extends ActionBarActivity
 
     static View root;
 
+    static int currentPage;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         ((MyApplication) getApplication()).getTracker(MyApplication.TrackerName.APP_TRACKER);
-
         setContentView(R.layout.activity_timetable);
+
+
+        mSectionsPagerAdapter = new TimetableSectionsPagerAdapter(getSupportFragmentManager());
+
+        // Set up the ViewPager with the sections adapter.
+        mViewPager = (ViewPager) findViewById(R.id.timetable_pager);
+        mViewPager.setAdapter(mSectionsPagerAdapter);
+
+
 
         if (!started) {
             lessontimes = new ArrayList<String>(Arrays.asList("08:30"));
             Bundle extras = getIntent().getExtras();
             String myExtra = extras.getString("timetableHTML");
             parseHTML(myExtra);
+
+            Calendar calendar = Calendar.getInstance();
+            int dayNum = calendar.get(Calendar.DAY_OF_WEEK) - 2;
+            if (dayNum > 4 || dayNum < 0) {
+                dayNum = 0;
+            }
+            currentPage = dayNum;
             started = true;
         }
 
-        addFriends();
 
-        mNavigationDrawerFragment = (NavigationDrawerFragment)
-                getSupportFragmentManager().findFragmentById(R.id.navigation_drawer);
-        mTitle = getTitle();
+        mViewPager.setCurrentItem(currentPage);
+
+        PageListener pageListener = new PageListener();
+        mViewPager.setOnPageChangeListener(pageListener);
+
+
+
+
+        addFriends();
 
         Thread myThread = null;
 
@@ -127,10 +143,83 @@ public class Timetable extends ActionBarActivity
         myThread = new Thread(myRunnableThread);
         myThread.start();
 
-        // Set up the drawer.
-        mNavigationDrawerFragment.setUp(
-                R.id.navigation_drawer,
-                (DrawerLayout) findViewById(R.id.drawer_layout));
+
+        LinearLayout qv = (LinearLayout) findViewById(R.id.Quick_view);
+        root = qv.getRootView();
+
+        Quickview quickview = new Quickview(root);
+        quickview.updateQuickview();
+
+        qv.setBackgroundColor(Color.rgb(51, 181, 229));
+
+        Typeface robotoLight = Typeface.createFromAsset(getAssets(), "fonts/Roboto-Light.ttf");
+        Typeface robotoThin = Typeface.createFromAsset(getAssets(), "fonts/Roboto-Thin.ttf");
+
+        TextView subtitle = (TextView) findViewById(R.id.time_left_texview);
+        TextView subject = (TextView) findViewById(R.id.subject_textview);
+        TextView prefix = (TextView) findViewById(R.id.prefix_textview);
+
+        prefix.setTypeface(robotoLight);
+
+        subtitle.setTypeface(robotoLight);
+
+        PagerTabStrip mPagerTabStrip = (PagerTabStrip) findViewById(R.id.timetable_pager_header);
+        for (int i = 0; i < mPagerTabStrip.getChildCount(); ++i) {
+            View nextChild = mPagerTabStrip.getChildAt(i);
+            if (nextChild instanceof TextView) {
+                TextView textViewToConvert = (TextView) nextChild;
+                textViewToConvert.setTextColor(Color.WHITE);
+
+            }
+        }
+        mPagerTabStrip.setTabIndicatorColor((int) Color.rgb(51,181,229));
+    }
+
+
+    private static class PageListener extends ViewPager.SimpleOnPageChangeListener {
+        public void onPageSelected(int position) {
+            Log.i("myapp", "page selected " + position);
+            currentPage = position;
+        }
+    }
+
+    public class TimetableSectionsPagerAdapter extends FragmentPagerAdapter {
+
+        public TimetableSectionsPagerAdapter(FragmentManager fm) {
+            super(fm);
+        }
+
+        @Override
+        public Fragment getItem(int position) {
+            // getItem is called to instantiate the fragment for the given page.
+            // Return a PlaceholderFragment (defined as a static inner class below).
+            return daytimetable.newInstance(position);
+        }
+
+        @Override
+        public int getCount() {
+            // Show 2 total pages.
+            return 5;
+        }
+
+        @Override
+        public CharSequence getPageTitle(int position) {
+            Locale l = Locale.getDefault();
+
+            switch (position) {
+                case 0:
+                    return "MON";
+                case 1:
+                    return "TUE";
+                case 2:
+                    return "WED";
+                case 3:
+                    return "THU";
+                case 4:
+                    return "FRI";
+            }
+            return null;
+        }
     }
 
     @Override
@@ -176,8 +265,7 @@ public class Timetable extends ActionBarActivity
                 //if friend's Free starts before/at same time, and finishes before end.
                 else if (les.getStartTime().getTime().getTime() >= free[0].getTime().getTime() &&
                         les.getEndTime().getTime().getTime() > free[1].getTime().getTime() &&
-                        les.getStartTime().getTime().getTime() < free[1].getTime().getTime())
-                {
+                        les.getStartTime().getTime().getTime() < free[1].getTime().getTime()) {
 
                     List<String> whosFree = les.getWhoElseFree();
                     whosFree.add(name + " (Until " + new SimpleDateFormat("HH:mm").format(free[1].getTime()).toString() + ")");
@@ -186,7 +274,7 @@ public class Timetable extends ActionBarActivity
                 //if friend's Free starts after, and finishes after.
                 else if (les.getStartTime().getTime().getTime() <= free[0].getTime().getTime() &&
                         les.getEndTime().getTime().getTime() > free[0].getTime().getTime() &&
-                        les.getEndTime().getTime().getTime() < free[1].getTime().getTime()){
+                        les.getEndTime().getTime().getTime() < free[1].getTime().getTime()) {
 
                     List<String> whosFree = les.getWhoElseFree();
                     whosFree.add(name + " (From " + new SimpleDateFormat("HH:mm").format(free[0].getTime()).toString() + ")");
@@ -194,7 +282,7 @@ public class Timetable extends ActionBarActivity
                 }
                 //if friend's Free starts after, and finishes before.
                 else if (les.getStartTime().getTime().getTime() <= free[0].getTime().getTime() &&
-                        les.getEndTime().getTime().getTime() >= free[1].getTime().getTime()){
+                        les.getEndTime().getTime().getTime() >= free[1].getTime().getTime()) {
 
                     List<String> whosFree = les.getWhoElseFree();
                     whosFree.add(name + " (From " + new SimpleDateFormat("HH:mm").format(free[0].getTime()).toString() + " to " + new SimpleDateFormat("HH:mm").format(free[1].getTime()).toString() + ")");
@@ -546,7 +634,25 @@ public class Timetable extends ActionBarActivity
     public void startDetailActivity(View v) {
         LinearLayout cont = (LinearLayout) v.findViewById(R.id.cont);
         int i = Integer.parseInt(cont.getTag().toString());
-        clickedLesson = todaysLessons.get(i);
+        List<Lesson> lessons = null;
+        switch (currentPage) {
+            case 0:
+                lessons = Timetable.Monday;
+                break;
+            case 1:
+                lessons = Timetable.Tuesday;
+                break;
+            case 2:
+                lessons = Timetable.Wednesday;
+                break;
+            case 3:
+                lessons = Timetable.Thursday;
+                break;
+            case 4:
+                lessons = Timetable.Friday;
+                break;
+        }
+        clickedLesson = lessons.get(i);
         Intent detailIntent;
         if (clickedLesson.getLessonName().equals("Free Period")) {
             detailIntent = new Intent(v.getContext(), LessonDetailActivity.class);
@@ -559,35 +665,6 @@ public class Timetable extends ActionBarActivity
         startActivity(detailIntent);
     }
 
-    @Override
-    public void onNavigationDrawerItemSelected(int position) {
-        // update the main content by replacing fragments
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        fragmentManager.beginTransaction()
-                .replace(R.id.container, TimetableFragment.newInstance(position + 1))
-                .commit();
-    }
-
-    public void onSectionAttached(int number) {
-        switch (number) {
-            case 1:
-                mTitle = getString(R.string.title_section1);
-                break;
-            case 2:
-                mTitle = "Tuesday";
-                break;
-            case 3:
-                mTitle = "Wednesday";
-                break;
-            case 4:
-                mTitle = "Thursday";
-                break;
-            case 5:
-                mTitle = "Friday";
-                break;
-        }
-    }
-
     public void restoreActionBar() {
         ActionBar actionBar = getSupportActionBar();
         actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
@@ -597,15 +674,13 @@ public class Timetable extends ActionBarActivity
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        if (!mNavigationDrawerFragment.isDrawerOpen()) {
-            // Only show items in the action bar relevant to this screen
-            // if the drawer is not showing. Otherwise, let the drawer
-            // decide what to show in the action bar.
-            getMenuInflater().inflate(R.menu.timetable, menu);
-            restoreActionBar();
-            return true;
-        }
-        return super.onCreateOptionsMenu(menu);
+
+        // Only show items in the action bar relevant to this screen
+        // if the drawer is not showing. Otherwise, let the drawer
+        // decide what to show in the action bar.
+        getMenuInflater().inflate(R.menu.timetable, menu);
+        restoreActionBar();
+        return true;
     }
 
     @Override
@@ -622,7 +697,7 @@ public class Timetable extends ActionBarActivity
         if (id == R.id.action_report_bug) {
             Intent i = new Intent(Intent.ACTION_SEND);
             i.setType("message/rfc822");
-            i.putExtra(Intent.EXTRA_EMAIL  , new String[]{"michaeljbrown.6@gmail.com"});
+            i.putExtra(Intent.EXTRA_EMAIL, new String[]{"michaeljbrown.6@gmail.com"});
             i.putExtra(Intent.EXTRA_SUBJECT, "Bug report");
             i.putExtra(Intent.EXTRA_TEXT, "Android version:\nThe Problem:");
             try {
@@ -638,404 +713,192 @@ public class Timetable extends ActionBarActivity
     /**
      * A placeholder fragment containing a simple view.
      */
-    public static class TimetableFragment extends Fragment {
-        /**
-         * The fragment argument representing the section number for this
-         * fragment.
-         */
-        private static final String ARG_SECTION_NUMBER = "section_number";
-        private static boolean openCurrentDay = true;
 
-        /**
-         * Returns a new instance of this fragment for the given section
-         * number.
-         */
-        public static TimetableFragment newInstance(int sectionNumber) {
-            TimetableFragment fragment = new TimetableFragment();
-            Bundle args = new Bundle();
-            args.putInt(ARG_SECTION_NUMBER, sectionNumber);
-            fragment.setArguments(args);
+    class Quickview {
+        View rootView;
 
-            return fragment;
+        public Quickview(View rootView) {
+            this.rootView = rootView;
         }
 
-        public TimetableFragment() {
-        }
+        public void updateQuickview() {
 
-        @Override
-        public void onCreate(Bundle savedInstanceState) {
+            TextView middleTextView = (TextView) rootView.findViewById(R.id.subject_textview);
+            TextView bottomTextView = (TextView) rootView.findViewById(R.id.time_left_texview);
+            TextView topTextView = (TextView) rootView.findViewById(R.id.prefix_textview);
+            ImageView divider = (ImageView) rootView.findViewById(R.id.divider_imageview);
 
-            super.onCreate(savedInstanceState);
-        }
+            Calendar calendar = Calendar.getInstance();
+            int dayNum = calendar.get(Calendar.DAY_OF_WEEK) - 1;
 
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                                 Bundle savedInstanceState) {
+            List<Lesson> todaysLessons = null;
+            if (dayNum > 0 && dayNum < 6) {
+                switch (dayNum) {
 
-            final View rootView = inflater.inflate(R.layout.fragment_timetable, container, false);
-            Bundle args = getArguments();
-
-            Typeface robotoLight = Typeface.createFromAsset(rootView.getContext().getAssets(), "fonts/Roboto-Light.ttf");
-            Typeface robotoThin = Typeface.createFromAsset(rootView.getContext().getAssets(), "fonts/Roboto-Thin.ttf");
-            TextView subtitle = (TextView) rootView.findViewById(R.id.time_left_texview);
-            TextView subject = (TextView) rootView.findViewById(R.id.subject_textview);
-            TextView prefix = (TextView) rootView.findViewById(R.id.prefix_textview);
-
-            prefix.setTypeface(robotoLight);
-
-            subtitle.setTypeface(robotoLight);
-
-            int dayNum;
-
-            dayNum = args.getInt(ARG_SECTION_NUMBER);
-
-            TextView dayHeader = (TextView) rootView.findViewById(R.id.day_textview);
-            switch (dayNum) {
-                case 1:
-                    todaysLessons = Monday;
-                    dayHeader.setText("MONDAY");
-                    break;
-                case 2:
-                    todaysLessons = Tuesday;
-                    dayHeader.setText("TUESDAY");
-                    break;
-                case 3:
-                    todaysLessons = Wednesday;
-                    dayHeader.setText("WEDNESDAY");
-                    break;
-                case 4:
-                    todaysLessons = Thursday;
-                    dayHeader.setText("THURSDAY");
-                    break;
-                case 5:
-                    todaysLessons = Friday;
-                    dayHeader.setText("FRIDAY");
-                    break;
-            }
-            root = rootView;
-
-            Quickview quickview = new Quickview(rootView);
-            quickview.updateQuickview();
-            /*
-            final ListView list = (ListView) rootView.findViewById(R.id.timetable_listview);
-            list.setAdapter(adapter);
-            */
-
-            LinearLayout qv = (LinearLayout) rootView.findViewById(R.id.Quick_view);
-            qv.setBackgroundColor(Color.rgb(51, 181, 229));
-
-            LinearLayout timetableCont = (LinearLayout) rootView.findViewById(R.id.timetable_container);
-
-            for (int i = 0; i < times.size() - 1; i++) {
-                LayoutInflater vi = (LayoutInflater) rootView.getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-                View v = vi.inflate(R.layout.list_item_times, null);
-
-                TextView time = (TextView) v.findViewById(R.id.list_item_time_textview);
-                LinearLayout timetextviewcont = (LinearLayout) v.findViewById(R.id.time_textview_container);
-                ViewGroup.LayoutParams params = timetextviewcont.getLayoutParams();
-
-                time.setText(times.get(i));
-                params.height = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 72, getActivity().getResources().getDisplayMetrics());
-
-                if (times.get(i).equals("10:20")) {
-                    params.height = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (float) 24, getActivity().getResources().getDisplayMetrics());
-                    time.setText("");
-                }
-                if (times.get(i).equals("12:30")) {
-                    params.height = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (float) 72 / 55 * 30, getActivity().getResources().getDisplayMetrics());
-                    time.setText("");
-                }
-                if (times.get(i).equals("13:00")) {
-                    params.height = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (float) 72 / 55 * 50, getActivity().getResources().getDisplayMetrics());
-                    time.setText(times.get(i));
+                    case 1:
+                        todaysLessons = Timetable.Monday;
+                        break;
+                    case 2:
+                        todaysLessons = Timetable.Tuesday;
+                        break;
+                    case 3:
+                        todaysLessons = Timetable.Wednesday;
+                        break;
+                    case 4:
+                        todaysLessons = Timetable.Thursday;
+                        break;
+                    case 5:
+                        todaysLessons = Timetable.Friday;
+                        break;
                 }
 
-                time.setTypeface(robotoThin);
+                middleTextView.setVisibility(View.VISIBLE);
+                bottomTextView.setVisibility(View.VISIBLE);
+                topTextView.setVisibility(View.VISIBLE);
+                divider.setVisibility(View.VISIBLE);
 
-                View insertPoint = rootView.findViewById(R.id.times_container);
-                ((ViewGroup) insertPoint).addView(v);
-            }
+                for (Lesson les : todaysLessons) {
+                    Calendar cal = Calendar.getInstance();
+                    cal.setTime(new Date());
+                    cal.set(Calendar.DAY_OF_MONTH, les.getEndTime().get(Calendar.DAY_OF_MONTH));
+                    cal.set(Calendar.MONTH, les.getEndTime().get(Calendar.MONTH));
+                    cal.set(Calendar.YEAR, les.getEndTime().get(Calendar.YEAR));
 
-            for (Lesson les : todaysLessons) {
-                LayoutInflater vi = (LayoutInflater) rootView.getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-                View v = vi.inflate(R.layout.lesson, null);
+                    Date dt = cal.getTime();
+                    long currenttime = dt.getTime();
+                    if (currenttime > les.getStartTime().getTime().getTime() && currenttime < les.getEndTime().getTime().getTime()) {
 
-                TextView subjectTextView = (TextView) v.findViewById(R.id.list_item_subject_textview);
-                subjectTextView.setVisibility(View.VISIBLE);
+                        String timeleft = String.valueOf(1 + (Math.abs(les.getEndTime().getTimeInMillis() - cal.getTimeInMillis()) / 60000));
 
-                LinearLayout cont = (LinearLayout) v.findViewById(R.id.cont);
-
-                LinearLayout subjectTextviewContainer = (LinearLayout) v.findViewById(R.id.list_item_subject_container_linearlayout);
-
-                ViewGroup.LayoutParams contParams = cont.getLayoutParams();
-                ViewGroup.LayoutParams subjectContParams = subjectTextviewContainer.getLayoutParams();
-
-                subjectTextView.setText(les.getLessonName());
-                subjectTextView.setTypeface(robotoThin);
-
-                float units = (float) les.getLength();
-
-                cont.setBackgroundColor(les.getBackgroundColor());
-
-                if (units < 50) {
-                    subjectTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, units / 55 * 40);
-                } else {
-                    subjectTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 30);
-                }
-                subjectTextView.setLineSpacing(-10, 1);
-
-                LinearLayout.LayoutParams textParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.FILL_PARENT);
-                textParams.setMargins(0, -10, 0, 0);
-                subjectTextView.setLayoutParams(textParams);
-
-                contParams.height = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (float) units / 55 * 72, v.getContext().getResources().getDisplayMetrics());
-                if (les.getLength() > 55) {
-                    units = 55;
-                }
-
-                subjectContParams.height = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (float) units / 55 * 72, v.getContext().getResources().getDisplayMetrics());
-
-                if (les.getLessonName().equals("Free Period")) {
-                    if (les.getLength() >= 55) {
-
-                        String sub = "";
-                        if (les.getWhoElseFree().size() == 0) {
-                            sub = "No-one.";
+                        Timetable.happeningNowsubjectText = les.getLessonName();
+                        if (les.getLessonName().equals("Free Period")) {
+                            String sub = "With ";
+                            if (les.getWhoElseFree().size() == 0) {
+                                sub += "No-one.";
+                            }
+                            if (les.getWhoElseFree().size() == 1) {
+                                sub += WordUtils.capitalizeFully(les.getWhoElseFree().get(0).split(" ")[0]) + ".";
+                            }
+                            if (les.getWhoElseFree().size() == 2) {
+                                sub += WordUtils.capitalizeFully(les.getWhoElseFree().get(0).split(" ")[0]) + " and " + WordUtils.capitalizeFully(les.getWhoElseFree().get(1).split(" ")[0]) + ".";
+                            }
+                            if (les.getWhoElseFree().size() > 2) {
+                                sub += WordUtils.capitalizeFully(les.getWhoElseFree().get(0).split(" ")[0]) + ", " +
+                                        WordUtils.capitalizeFully(les.getWhoElseFree().get(1).split(" ")[0]) + " and " +
+                                        (les.getWhoElseFree().size() - 2) + " others.";
+                            }
+                            Timetable.happeningNowsubtitleText = sub;
+                        } else {
+                            Timetable.happeningNowsubtitleText = timeleft + " Minutes left";
                         }
-                        if (les.getWhoElseFree().size() == 1) {
-                            sub = WordUtils.capitalizeFully(les.getWhoElseFree().get(0).split(" ")[0]) + ".";
-                        }
-                        if (les.getWhoElseFree().size() == 2) {
-                            sub = WordUtils.capitalizeFully(les.getWhoElseFree().get(0).split(" ")[0]) + " and " + WordUtils.capitalizeFully(les.getWhoElseFree().get(1).split(" ")[0]) + ".";
-                        }
-                        if (les.getWhoElseFree().size() > 2) {
-                            sub = WordUtils.capitalizeFully(les.getWhoElseFree().get(0).split(" ")[0]) + ", " +
-                                    WordUtils.capitalizeFully(les.getWhoElseFree().get(1).split(" ")[0]) + "...";
+                    } else if (!les.getLessonName().equals("Break") && currenttime < les.getStartTime().getTime().getTime() && !les.getLessonName().equals("Free Period") && !les.getLessonName().equals("Lunch")) {
+
+                        Timetable.NextLessonsubjectText = les.getLessonName();
+                        long timeleft = 1 + (Math.abs(les.getStartTime().getTimeInMillis() - cal.getTimeInMillis()) / 60000);
+                        if (timeleft < 60) {
+                            String timeleftminutes = String.valueOf(timeleft);
+                            Timetable.NextLessonsubtitleText = ("in " + timeleftminutes + " Minutes");
+                        } else {
+                            String timeleftminutes = String.valueOf(timeleft % 60);
+                            String timelefthours = String.valueOf((timeleft - (timeleft % 60)) / 60) + " Hours";
+                            Timetable.NextLessonsubtitleText = ("in " + timelefthours + " and " + timeleftminutes + " Minutes");
                         }
 
-                        SpannableString txt = new SpannableString("Free Period\n With " + sub);
-                        txt.setSpan(new RelativeSizeSpan(0.5f), 11, txt.length(), 0);
-                        subjectTextView.setText(txt, TextView.BufferType.SPANNABLE);
-                        subjectTextView.setLineSpacing(0, 1);
-
-                        textParams.setMargins(0, 0, 0, 0);
-
-                        subjectTextView.setLayoutParams(textParams);
+                        break;
                     }
                 }
-
-                if (les.getLessonName().equals("Break")) {
-                    cont.setBackgroundColor(Color.rgb(51, 181, 229));
-                    contParams.height = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 24, getActivity().getResources().getDisplayMetrics());
-
-                    subjectContParams.height = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 24, getActivity().getResources().getDisplayMetrics());
-                    subjectTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
-                }
-                if (les.getLessonName().equals("Lunch")) {
-                    cont.setBackgroundColor(Color.rgb(51, 181, 229));
-                }
-
-                cont.setTag(todaysLessons.indexOf(les));
-                View insertPoint = rootView.findViewById(R.id.timetable_container);
-                ((ViewGroup) insertPoint).addView(v);
-            }
-
-            return rootView;
-        }
-
-        @Override
-        public void onAttach(Activity activity) {
-            super.onAttach(activity);
-            ((Timetable) activity).onSectionAttached(
-                    getArguments().getInt(ARG_SECTION_NUMBER));
-        }
-    }
-}
-
-class Quickview {
-    View rootView;
-
-    public Quickview(View rootView) {
-        this.rootView = rootView;
-    }
-
-    public void updateQuickview() {
-
-        TextView middleTextView = (TextView) rootView.findViewById(R.id.subject_textview);
-        TextView bottomTextView = (TextView) rootView.findViewById(R.id.time_left_texview);
-        TextView topTextView = (TextView) rootView.findViewById(R.id.prefix_textview);
-        ImageView divider = (ImageView) rootView.findViewById(R.id.divider_imageview);
-
-        Calendar calendar = Calendar.getInstance();
-        int dayNum = calendar.get(Calendar.DAY_OF_WEEK) - 1;
-
-        List<Lesson> todaysLessons = null;
-        if (dayNum > 0 && dayNum < 6) {
-            switch (dayNum) {
-
-                case 1:
-                    todaysLessons = Timetable.Monday;
-                    break;
-                case 2:
-                    todaysLessons = Timetable.Tuesday;
-                    break;
-                case 3:
-                    todaysLessons = Timetable.Wednesday;
-                    break;
-                case 4:
-                    todaysLessons = Timetable.Thursday;
-                    break;
-                case 5:
-                    todaysLessons = Timetable.Friday;
-                    break;
-            }
-
-            middleTextView.setVisibility(View.VISIBLE);
-            bottomTextView.setVisibility(View.VISIBLE);
-            topTextView.setVisibility(View.VISIBLE);
-            divider.setVisibility(View.VISIBLE);
-
-            for (Lesson les : todaysLessons) {
-                Calendar cal = Calendar.getInstance();
-                cal.setTime(new Date());
-                cal.set(Calendar.DAY_OF_MONTH, les.getEndTime().get(Calendar.DAY_OF_MONTH));
-                cal.set(Calendar.MONTH, les.getEndTime().get(Calendar.MONTH));
-                cal.set(Calendar.YEAR, les.getEndTime().get(Calendar.YEAR));
-
-                Date dt = cal.getTime();
-                long currenttime = dt.getTime();
-                if (currenttime > les.getStartTime().getTime().getTime() && currenttime < les.getEndTime().getTime().getTime()) {
-
-                    String timeleft = String.valueOf(1 + (Math.abs(les.getEndTime().getTimeInMillis() - cal.getTimeInMillis()) / 60000));
-
-                    Timetable.happeningNowsubjectText = les.getLessonName();
-                    if (les.getLessonName().equals("Free Period")) {
-                        String sub = "With ";
-                        if (les.getWhoElseFree().size() == 0) {
-                            sub += "No-one.";
-                        }
-                        if (les.getWhoElseFree().size() == 1) {
-                            sub += WordUtils.capitalizeFully(les.getWhoElseFree().get(0).split(" ")[0]) + ".";
-                        }
-                        if (les.getWhoElseFree().size() == 2) {
-                            sub += WordUtils.capitalizeFully(les.getWhoElseFree().get(0).split(" ")[0]) + " and " + WordUtils.capitalizeFully(les.getWhoElseFree().get(1).split(" ")[0]) + ".";
-                        }
-                        if (les.getWhoElseFree().size() > 2) {
-                            sub += WordUtils.capitalizeFully(les.getWhoElseFree().get(0).split(" ")[0]) + ", " +
-                                    WordUtils.capitalizeFully(les.getWhoElseFree().get(1).split(" ")[0]) + " and " +
-                                    (les.getWhoElseFree().size() - 2) + " others.";
-                        }
-                        Timetable.happeningNowsubtitleText = sub;
-                    } else {
-                        Timetable.happeningNowsubtitleText = timeleft + " Minutes left";
-                    }
-                } else if (!les.getLessonName().equals("Break") && currenttime < les.getStartTime().getTime().getTime() && !les.getLessonName().equals("Free Period") && !les.getLessonName().equals("Lunch")) {
-
-                    Timetable.NextLessonsubjectText = les.getLessonName();
-                    long timeleft = 1 + (Math.abs(les.getStartTime().getTimeInMillis() - cal.getTimeInMillis()) / 60000);
-                    if (timeleft < 60) {
-                        String timeleftminutes = String.valueOf(timeleft);
-                        Timetable.NextLessonsubtitleText = ("in " + timeleftminutes + " Minutes");
-                    } else {
-                        String timeleftminutes = String.valueOf(timeleft % 60);
-                        String timelefthours = String.valueOf((timeleft - (timeleft % 60)) / 60) + " Hours";
-                        Timetable.NextLessonsubtitleText = ("in " + timelefthours + " and " + timeleftminutes + " Minutes");
-                    }
-
-                    break;
-                }
-            }
-            if (Timetable.happeningNowsubjectText.equals("") && Timetable.NextLessonsubjectText.equals("")) {
-                Timetable.happeningNowsubjectText = "Nothing.";
-                Timetable.happeningNowsubtitleText = "You're finished for the day.";
-                Timetable.NextLessonsubjectText = "Nothing.";
-                Timetable.NextLessonsubtitleText = "You're finished for the day.";
-            } else {
-                if (Timetable.happeningNowsubjectText.equals("")) {
+                if (Timetable.happeningNowsubjectText.equals("") && Timetable.NextLessonsubjectText.equals("")) {
                     Timetable.happeningNowsubjectText = "Nothing.";
-                    Timetable.happeningNowsubtitleText = "College hasn't started yet.";
-                }
-                if (Timetable.NextLessonsubjectText.equals("")) {
+                    Timetable.happeningNowsubtitleText = "You're finished for the day.";
                     Timetable.NextLessonsubjectText = "Nothing.";
                     Timetable.NextLessonsubtitleText = "You're finished for the day.";
-                }
-            }
-
-            if (Timetable.happeningNow) {
-                topTextView.setText(Timetable.happeningNowprefixText);
-                middleTextView.setText(Timetable.happeningNowsubjectText);
-                bottomTextView.setText(Timetable.happeningNowsubtitleText);
-            } else {
-                topTextView.setText(Timetable.nextLessonprefixText);
-                middleTextView.setText(Timetable.NextLessonsubjectText);
-                bottomTextView.setText(Timetable.NextLessonsubtitleText);
-            }
-        } else {
-
-            Timetable.happeningNowsubjectText = "Nothing";
-            Timetable.happeningNowsubtitleText = "It's the Weekend.";
-            Timetable.NextLessonsubjectText = "Nothing";
-            Timetable.NextLessonsubtitleText = "It's the Weekend.";
-
-            if (Timetable.happeningNow) {
-                topTextView.setText(Timetable.happeningNowprefixText);
-                middleTextView.setText(Timetable.happeningNowsubjectText);
-                bottomTextView.setText(Timetable.happeningNowsubtitleText);
-            } else {
-                topTextView.setText(Timetable.nextLessonprefixText);
-                middleTextView.setText(Timetable.NextLessonsubjectText);
-                bottomTextView.setText(Timetable.NextLessonsubtitleText);
-            }
-        }
-
-        ;
-    }
-}
-
-class addToServer extends AsyncTask<Void, Void, Void> {
-    FriendDatabaseObject y;
-    String key;
-    Context ctx;
-
-    public addToServer(String key, FriendDatabaseObject y, Context ctx) {
-        this.y = y;
-        this.key = key;
-        this.ctx = ctx;
-    }
-
-    protected Void doInBackground(Void... x) {
-
-        try {
-            Client client = new OrchestrateClient("3e21631e-63cf-4b9e-b227-beabb7eab90a");
-
-            client.kv("Frees", key).put(y).on(new ResponseAdapter<KvMetadata>() {
-                @Override
-                public void onSuccess(KvMetadata object) {
-                    Log.e("myapp", "added to server." + key);
-                    super.onSuccess(object);
-                    DataHandler handler = new DataHandler(ctx);
-                    handler.open();
-                    String query = "SELECT * FROM atable WHERE username = '" + key + "'";
-                    Cursor data = handler.db.rawQuery(query, null);
-                    ContentValues content = new ContentValues();
-                    if (data.moveToFirst()) {
-                        content.put("uptodate", 2);
-                        handler.db.update("atable", content, "username='" + key + "'", null);
-                        Log.e("myapp", "added to database (2)");
+                } else {
+                    if (Timetable.happeningNowsubjectText.equals("")) {
+                        Timetable.happeningNowsubjectText = "Nothing.";
+                        Timetable.happeningNowsubtitleText = "College hasn't started yet.";
                     }
-                    handler.close();
+                    if (Timetable.NextLessonsubjectText.equals("")) {
+                        Timetable.NextLessonsubjectText = "Nothing.";
+                        Timetable.NextLessonsubtitleText = "You're finished for the day.";
+                    }
                 }
 
-                @Override
-                public void onFailure(Throwable error) {
-                    super.onFailure(error);
+                if (Timetable.happeningNow) {
+                    topTextView.setText(Timetable.happeningNowprefixText);
+                    middleTextView.setText(Timetable.happeningNowsubjectText);
+                    bottomTextView.setText(Timetable.happeningNowsubtitleText);
+                } else {
+                    topTextView.setText(Timetable.nextLessonprefixText);
+                    middleTextView.setText(Timetable.NextLessonsubjectText);
+                    bottomTextView.setText(Timetable.NextLessonsubtitleText);
                 }
-            });
-        } catch (Throwable e) {
-            e.printStackTrace();
+            } else {
+
+                Timetable.happeningNowsubjectText = "Nothing";
+                Timetable.happeningNowsubtitleText = "It's the Weekend.";
+                Timetable.NextLessonsubjectText = "Nothing";
+                Timetable.NextLessonsubtitleText = "It's the Weekend.";
+
+                if (Timetable.happeningNow) {
+                    topTextView.setText(Timetable.happeningNowprefixText);
+                    middleTextView.setText(Timetable.happeningNowsubjectText);
+                    bottomTextView.setText(Timetable.happeningNowsubtitleText);
+                } else {
+                    topTextView.setText(Timetable.nextLessonprefixText);
+                    middleTextView.setText(Timetable.NextLessonsubjectText);
+                    bottomTextView.setText(Timetable.NextLessonsubtitleText);
+                }
+            }
+
+            ;
+        }
+    }
+
+    class addToServer extends AsyncTask<Void, Void, Void> {
+        FriendDatabaseObject y;
+        String key;
+        Context ctx;
+
+        public addToServer(String key, FriendDatabaseObject y, Context ctx) {
+            this.y = y;
+            this.key = key;
+            this.ctx = ctx;
         }
 
-        return null;
+        protected Void doInBackground(Void... x) {
+
+            try {
+                Client client = new OrchestrateClient("3e21631e-63cf-4b9e-b227-beabb7eab90a");
+
+                client.kv("Frees", key).put(y).on(new ResponseAdapter<KvMetadata>() {
+                    @Override
+                    public void onSuccess(KvMetadata object) {
+                        Log.e("myapp", "added to server." + key);
+                        super.onSuccess(object);
+                        DataHandler handler = new DataHandler(ctx);
+                        handler.open();
+                        String query = "SELECT * FROM atable WHERE username = '" + key + "'";
+                        Cursor data = handler.db.rawQuery(query, null);
+                        ContentValues content = new ContentValues();
+                        if (data.moveToFirst()) {
+                            content.put("uptodate", 2);
+                            handler.db.update("atable", content, "username='" + key + "'", null);
+                            Log.e("myapp", "added to database (2)");
+                        }
+                        handler.close();
+                    }
+
+                    @Override
+                    public void onFailure(Throwable error) {
+                        super.onFailure(error);
+                    }
+                });
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
+
+            return null;
+        }
     }
 }
 
