@@ -1,0 +1,119 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+
+    android:orientation="vertical"
+    tools:context="com.psyngo.michael.symondstimetableplus.Timetable.TimetableFragment"
+    android:id="@+id/topview"
+    android:background="#33b5e5">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:id="@+id/Quick_view"
+        android:background="#33b5e5"
+        android:clickable="true"
+        android:onClick="animateQuickview"
+        android:paddingTop="16dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:text="Happening now"
+            android:id="@+id/prefix_textview"
+            android:textColor="#ffffff"
+            android:layout_marginLeft="16dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="The Weekend."
+            android:id="@+id/subject_textview"
+            android:textColor="#ffffffff"
+            android:textStyle="bold"
+            android:textSize="30sp"
+            android:layout_marginLeft="16dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:text="22 Minutes left."
+            android:id="@+id/time_left_texview"
+            android:textColor="#FFFFFF"
+            android:paddingBottom="5dp"
+            android:layout_marginLeft="16dp" />
+
+        <ImageView
+            android:layout_width="fill_parent"
+            android:layout_height="1dp"
+            android:id="@+id/divider_imageview"
+            android:background="#ffd8d9d9" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="WEDNESDAY"
+            android:id="@+id/day_textview"
+            android:textColor="#ffffffff"
+            android:textStyle="bold"
+            android:singleLine="false"
+            android:paddingTop="5dp"
+            android:layout_gravity="center_horizontal" />
+
+    </LinearLayout>
+
+    <RelativeLayout
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent">
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:splitMotionEvents="true"
+            android:id="@+id/listview_container">
+
+            <ScrollView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/scrollView" >
+
+                <LinearLayout
+                    android:orientation="horizontal"
+                    android:layout_width="fill_parent"
+                    android:layout_height="fill_parent">
+
+                    <LinearLayout
+                        android:orientation="vertical"
+                        android:layout_width="85dp"
+                        android:layout_height="match_parent"
+                        android:id="@+id/times_container"></LinearLayout>
+
+                    <LinearLayout
+                        android:orientation="vertical"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:id="@+id/timetable_container">
+
+                    </LinearLayout>
+                </LinearLayout>
+            </ScrollView>
+
+
+        </LinearLayout>
+
+        <ImageView
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/imageView"
+            android:background="@drawable/quickview_dropshadow" />
+
+    </RelativeLayout>
+
+</LinearLayout>
