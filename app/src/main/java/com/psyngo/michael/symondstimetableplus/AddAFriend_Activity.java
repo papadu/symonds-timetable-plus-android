@@ -23,8 +23,22 @@ import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.apache.commons.lang3.text.WordUtils;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
+import org.apache.commons.lang3.text.WordUtils;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -178,23 +192,16 @@ class getListOfNames extends AsyncTask<Void, Void, ArrayList<FriendList>> {
 
     protected ArrayList<FriendList> doInBackground(Void... params) {
 
-        Client client = new OrchestrateClient("3e21631e-63cf-4b9e-b227-beabb7eab90a");
+        HttpClient httpclient = new DefaultHttpClient();
 
-        try {
-            client.ping();
-            pinged = true;
-        } catch (Throwable e) {
-            e.printStackTrace();
-            pinged = false;
-        }
+        HttpGet request;
 
+        getFriendsList gfl = new getFriendsList(ctx, lv, "");
+
+/*
         if (LoginScreen.offlinemode && pinged) {
             try {
-                Iterable<KvObject<FriendDatabaseObject>> results =
-                        client.relation("Frees", LoginScreen.username)
-                                .limit(60)
-                                .get(FriendDatabaseObject.class, "friends")
-                                .get(10, TimeUnit.SECONDS);
+
                 for (KvObject<FriendDatabaseObject> i : results) {
                     boolean alreadyFriend = false;
                     for (int x = 0; x < AddAFriend_Activity.friends.size(); x++) {
@@ -211,52 +218,74 @@ class getListOfNames extends AsyncTask<Void, Void, ArrayList<FriendList>> {
 
             }
         }
+        */
 
-        KvList<FriendDatabaseObject> l;
 
-        if (pinged) {
+            boolean isSearch;
+
             try {
+                //if a list request
                 if (query.equals("")) {
-                    Log.e("myapp", "executing null query");
+                    isSearch = false;
+                    //if it's not the first page
                     if (next) {
-                        AddAFriend_Activity.listOrchestrateRequest = client.listCollection("Frees")
-                                .startKey(AddAFriend_Activity.NameList.get(AddAFriend_Activity.NameList.size() - 1).getKey())
-                                .limit(50)
-                                .get(FriendDatabaseObject.class);
+                        request = new HttpGet("http://mooshoon.pythonanywhere.com/users/?startkey=" + AddAFriend_Activity.NameList.get(AddAFriend_Activity.NameList.size() - 1).getKey());
                     } else {
-
-                        AddAFriend_Activity.listOrchestrateRequest = client.listCollection("Frees")
-                                .limit(50)
-                                .get(FriendDatabaseObject.class);
-                        AddAFriend_Activity.NameList = new ArrayList<FriendList>();
+                        request = new HttpGet("http://mooshoon.pythonanywhere.com/users/");
                     }
-
-                    l = AddAFriend_Activity.listOrchestrateRequest.get(20, TimeUnit.SECONDS);
-
-                    for (KvObject<FriendDatabaseObject> o : l) {
-                        AddAFriend_Activity.NameList.add(new FriendList(o.getKey(), o.getValue()));
-                    }
+                //else it's a search request
                 } else {
-                    String luceneQuery = "value.name:*" + query + "*";
-                    SearchResults<FriendDatabaseObject> searchResults = client.searchCollection("Frees")
-                            .limit(20)
-                            .get(FriendDatabaseObject.class, luceneQuery)
-                            .get(15, TimeUnit.SECONDS);
+                    request = new HttpGet("http://mooshoon.pythonanywhere.com/users/?query=value.name:" + query + "*");
                     AddAFriend_Activity.NameList = new ArrayList<FriendList>();
-                    if(searchResults.getTotalCount() == 0){
-                        nosearchresults = true;
-                    }
-                    for (Result<FriendDatabaseObject> x : searchResults) {
-                        AddAFriend_Activity.NameList.add(new FriendList(x.getKvObject().getKey(), x.getKvObject().getValue()));
-                    }
+                    isSearch = true;
                 }
 
+
+                HttpResponse timetableResponse = httpclient.execute(request);
+                int responseCode = timetableResponse.getStatusLine().getStatusCode();
+                InputStream inputStream = timetableResponse.getEntity().getContent();
+
+                BufferedReader bufferedReader = new BufferedReader( new InputStreamReader(inputStream));
+                String line = "";
+                String result = "";
+                while((line = bufferedReader.readLine()) != null)
+                    result += line;
+
+                inputStream.close();
+
+                Log.e("Json", result);
+
+                GsonBuilder builder = new GsonBuilder();
+                Gson gson = builder.create();
+
+                OrchestrateResponseObject orchestrateResponse = gson.fromJson(result, OrchestrateResponseObject.class);
+
+                if(orchestrateResponse.count == 0 && isSearch){
+                    nosearchresults = true;
+                }
+
+
+                for (OrchestrateResult friend : orchestrateResponse.results){
+                    Log.e("myapp", friend.path.key);
+                    FriendDatabaseObject v = new FriendDatabaseObject();
+                    v.setName(friend.value.name);
+                    v.setDate(friend.value.date);
+
+                    v.setMonday(gfl.convertToFriendDatabaseObject(friend.value.monday));
+                    v.setTuesday(gfl.convertToFriendDatabaseObject(friend.value.tuesday));
+                    v.setWednesday(gfl.convertToFriendDatabaseObject(friend.value.wednesday));
+                    v.setThursday(gfl.convertToFriendDatabaseObject(friend.value.thursday));
+                    v.setFriday(gfl.convertToFriendDatabaseObject(friend.value.friday));
+
+                    AddAFriend_Activity.NameList.add(new FriendList(friend.path.key, v));
+                }
+                pinged = true;
                 success = true;
             } catch (Throwable e) {
                 e.printStackTrace();
                 success = false;
             }
-        }
+
 
         return null;
     }
@@ -368,44 +397,36 @@ class addFriend extends AsyncTask<Void, Void, Void> {
     }
 
     protected Void doInBackground(Void... params) {
-        Client client = new OrchestrateClient("3e21631e-63cf-4b9e-b227-beabb7eab90a");
+        //TODO: Replace pings with internet checks
+        HttpClient httpclient = new DefaultHttpClient();
+        pinged = true;
+        HttpPost httppost = new HttpPost("http://mooshoon.pythonanywhere.com/users/" + LoginScreen.username + "/friends/");
+        List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
+        nameValuePairs.add(new BasicNameValuePair("friendkey", friend.getKey()));
+
         if (view.getTag().equals(0)) {
-
             try {
-                client.ping();
-                pinged = true;
-            } catch (Throwable e) {
-                e.printStackTrace();
-                pinged = false;
-            }
 
-            try {
-                if (pinged) {
-                    boolean result = client.relation("Frees", LoginScreen.username)
-                            .to("Frees", friend.getKey())
-                            .put("friends")
-                            .get(10, TimeUnit.SECONDS);
+                    nameValuePairs.add(new BasicNameValuePair("type", "add"));
+                    httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+                HttpResponse response = httpclient.execute(httppost);
 
                     AddAFriend_Activity.friends.add(friend);
                     view.setTag(1);
                     i.setBackgroundDrawable(ctx.getResources().getDrawable(R.drawable.ic_action_done));
 
                     success = true;
-                }
+
             } catch (Throwable e) {
                 e.printStackTrace();
                 success = false;
             }
         } else {
             try {
-                if (pinged) {
-
-                    boolean result = client.relation("Frees", LoginScreen.username)
-                            .to("Frees", friend.getKey())
-                            .purge("friends")
-                            .get(10, TimeUnit.SECONDS);
+                    nameValuePairs.add(new BasicNameValuePair("type", "delete"));
+                    httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+                HttpResponse response = httpclient.execute(httppost);
                     success = true;
-                }
             } catch (Throwable e) {
                 e.printStackTrace();
                 success = false;
