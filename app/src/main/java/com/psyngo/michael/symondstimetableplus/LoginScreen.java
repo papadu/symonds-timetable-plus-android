@@ -28,16 +28,23 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
-import io.orchestrate.client.Client;
-import io.orchestrate.client.KvObject;
-import io.orchestrate.client.OrchestrateClient;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 public class LoginScreen extends ActionBarActivity {
 
@@ -325,33 +332,82 @@ class getFriendsList extends AsyncTask<Void, Void, Void> {
     }
 
     protected Void doInBackground(Void... params) {
-        Client client = new OrchestrateClient("3e21631e-63cf-4b9e-b227-beabb7eab90a");
-        try{
-            client.ping();
-            pinged = true;
-        }catch (Throwable e){
-            e.printStackTrace();
-            pinged = false;
-        }
+
+        HttpClient httpclient = new DefaultHttpClient();
+
+
+
+
             try {
-                //Get Friends List from Server.
-                Iterable<KvObject<FriendDatabaseObject>> results =
-                        client.relation("Frees", LoginScreen.username)
-                                .limit(60)
-                                .get(FriendDatabaseObject.class, "friends")
-                                .get(10, TimeUnit.SECONDS);
-                //Loop through result, add each friend to local friend list
-                for (KvObject<FriendDatabaseObject> i : results) {
-                    AddAFriend_Activity.friends.add(new FriendList(i.getKey(), i.getValue()));
+                HttpGet request = new HttpGet("http://mooshoon.pythonanywhere.com/users/" + LoginScreen.username + "/friends/");
+                HttpResponse timetableResponse = httpclient.execute(request);
+                int responseCode = timetableResponse.getStatusLine().getStatusCode();
+                InputStream inputStream = timetableResponse.getEntity().getContent();
+
+                BufferedReader bufferedReader = new BufferedReader( new InputStreamReader(inputStream));
+                String line = "";
+                String result = "";
+                while((line = bufferedReader.readLine()) != null)
+                    result += line;
+
+                inputStream.close();
+
+                Log.e("Json", result);
+
+                GsonBuilder builder = new GsonBuilder();
+                Gson gson = builder.create();
+
+                OrchestrateResponseObject orchestrateResponse = gson.fromJson(result, OrchestrateResponseObject.class);
+
+                for (OrchestrateResult friend : orchestrateResponse.results){
+                    Log.e("myapp", friend.path.key);
+                    FriendDatabaseObject v = new FriendDatabaseObject();
+                    v.setName(friend.value.name);
+                    v.setDate(friend.value.date);
+
+                    v.setMonday(convertToFriendDatabaseObject(friend.value.monday));
+                    v.setTuesday(convertToFriendDatabaseObject(friend.value.tuesday));
+                    v.setWednesday(convertToFriendDatabaseObject(friend.value.wednesday));
+                    v.setThursday(convertToFriendDatabaseObject(friend.value.thursday));
+                    v.setFriday(convertToFriendDatabaseObject(friend.value.friday));
+
+                    AddAFriend_Activity.friends.add(new FriendList(friend.path.key, v));
                 }
+
                 success = true;
-            } catch (Throwable e) {
+            } catch (IOException e) {
                 Log.e("myapp", e.toString());
                 success = false;
             }
 
 
         return null;
+    }
+
+    public List<Calendar[]> convertToFriendDatabaseObject(ArrayList<Number[]> x){
+        List<Calendar[]> result = new ArrayList<>();
+        for(Number[] free : x) {
+            Calendar start = Calendar.getInstance();
+            Calendar end = Calendar.getInstance();
+            try {
+                start.setTime(new SimpleDateFormat("HH:mm").parse("00:00"));
+                end.setTime(new SimpleDateFormat("HH:mm").parse("00:00"));
+            } catch (ParseException e){
+                e.printStackTrace();
+            }
+            start.add(Calendar.HOUR, 1);
+            end.add(Calendar.HOUR, 1);
+            start.add(Calendar.MILLISECOND, free[0].intValue());
+            end.add(Calendar.MILLISECOND, free[1].intValue());
+                Log.d("start", new SimpleDateFormat("HH:mm dd MMMM yyyy").format(start.getTime()));
+                Log.d("end", new SimpleDateFormat("HH:mm dd MMMM yyyy").format(end.getTime()));
+
+            Calendar[] cals = new Calendar[2];
+            cals[0] = start;
+            cals[1] = end;
+            result.add(cals);
+        }
+        return result;
     }
 
     protected void onPostExecute(Void a) {

@@ -1,7 +1,7 @@
 package com.psyngo.michael.symondstimetableplus;
 
-import java.util.Calendar;
 import java.util.List;
+import java.util.Calendar;
 
 /**
  * Created by Michael on 09/11/2014.
