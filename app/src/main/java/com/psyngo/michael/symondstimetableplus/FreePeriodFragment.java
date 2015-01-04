@@ -20,21 +20,27 @@ import java.util.List;
 public class FreePeriodFragment extends Fragment {
     int sectionNum;
 
-    public FreePeriodFragment(){}
+    public FreePeriodFragment(){
 
-    public FreePeriodFragment(int sectionNum){
-        this.sectionNum = sectionNum;
     }
 
 
+
+
     public static FreePeriodFragment newInstance(int sectionNumber) {
-        FreePeriodFragment fragment = new FreePeriodFragment(sectionNumber);
+        FreePeriodFragment fragment = new FreePeriodFragment();
+        Bundle args = new Bundle();
+        args.putInt("sec", sectionNumber);
+        fragment.setArguments(args);
+
         return fragment;
     }
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+
+        sectionNum = getArguments().getInt("sec");
 
         Lesson x = Timetable.clickedLesson;
         LinearLayout mainll = (LinearLayout) inflater.inflate(R.layout.fragment_detail_free, container, false);

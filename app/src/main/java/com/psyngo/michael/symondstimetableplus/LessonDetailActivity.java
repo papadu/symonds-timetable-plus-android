@@ -111,7 +111,7 @@ public class LessonDetailActivity extends ActionBarActivity {
                     case 0:
                         return FreePeriodFragment.newInstance(1);
                     case 1:
-                        return PlaceholderFragment.newInstance(position + 1);
+                        return FreeRoomFragment.newInstance();
                     default:
                         return PlaceholderFragment.newInstance(position + 1);
                 }

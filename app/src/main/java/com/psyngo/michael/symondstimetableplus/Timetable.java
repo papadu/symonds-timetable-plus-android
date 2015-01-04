@@ -598,10 +598,10 @@ public class Timetable extends ActionBarActivity {
         String query = "SELECT * FROM atable WHERE username = '" + LoginScreen.username + "'";
         Cursor data = handler.db.rawQuery(query, null);
         if (data.moveToFirst()) {
-            //if (data.getInt(4) == 1) {
+            if (data.getInt(4) == 1) {
                 addToServer ats = new addToServer(key, value, getApplicationContext());
                 ats.execute();
-            //}
+            }
         }
     }
 

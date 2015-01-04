@@ -21,7 +21,10 @@ public class daytimetable extends Fragment {
     int mPos;
 
     public static daytimetable newInstance(int position) {
-        daytimetable fragment = new daytimetable(position);
+        daytimetable fragment = new daytimetable();
+        Bundle args = new Bundle();
+        args.putInt("sec", position);
+        fragment.setArguments(args);
         return fragment;
     }
 
@@ -29,9 +32,6 @@ public class daytimetable extends Fragment {
         // Required empty public constructor
     }
 
-    public daytimetable(int pos) {
-        mPos = pos;
-    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -42,6 +42,7 @@ public class daytimetable extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
+        mPos = getArguments().getInt("sec");
         final View rootView = inflater.inflate(R.layout.fragment_daytimetable, container, false);
 
         Typeface robotoLight = Typeface.createFromAsset(rootView.getContext().getAssets(), "fonts/Roboto-Light.ttf");
