@@ -11,6 +11,8 @@ import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.Typeface;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -34,8 +36,18 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.analytics.GoogleAnalytics;
+import com.google.gson.Gson;
 
 import org.apache.commons.lang3.text.WordUtils;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+import org.glassfish.grizzly.http.util.ContentType;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -110,7 +122,6 @@ public class Timetable extends ActionBarActivity {
         mViewPager.setAdapter(mSectionsPagerAdapter);
 
 
-
         if (!started) {
             lessontimes = new ArrayList<String>(Arrays.asList("08:30"));
             Bundle extras = getIntent().getExtras();
@@ -131,8 +142,6 @@ public class Timetable extends ActionBarActivity {
 
         PageListener pageListener = new PageListener();
         mViewPager.setOnPageChangeListener(pageListener);
-
-
 
 
         addFriends();
@@ -172,7 +181,7 @@ public class Timetable extends ActionBarActivity {
 
             }
         }
-        mPagerTabStrip.setTabIndicatorColor((int) Color.rgb(51,181,229));
+        mPagerTabStrip.setTabIndicatorColor((int) Color.rgb(51, 181, 229));
     }
 
 
@@ -589,10 +598,10 @@ public class Timetable extends ActionBarActivity {
         String query = "SELECT * FROM atable WHERE username = '" + LoginScreen.username + "'";
         Cursor data = handler.db.rawQuery(query, null);
         if (data.moveToFirst()) {
-            if (data.getInt(4) == 1) {
+            //if (data.getInt(4) == 1) {
                 addToServer ats = new addToServer(key, value, getApplicationContext());
                 ats.execute();
-            }
+            //}
         }
     }
 
@@ -866,33 +875,52 @@ public class Timetable extends ActionBarActivity {
         }
 
         protected Void doInBackground(Void... x) {
+            //TODO: Replace with python server code
+
+            ConnectivityManager cm = (ConnectivityManager) ctx.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+            NetworkInfo ni = cm.getActiveNetworkInfo();
+            if (ni == null) {
+                // There are no active networks
+                return null;
+            }
+
+            FriendObjectConverter converter = new FriendObjectConverter();
+            FriendJsonObject object = converter.convertToFriendJsonObject(y);
+
+            Gson gson = new Gson();
+            String json = gson.toJson(object);
+            Log.e("json", json);
+
+            HttpClient httpclient = new DefaultHttpClient();
+            HttpPost httppost = new HttpPost("http://mooshoon.pythonanywhere.com/users/" + LoginScreen.username + "/");
+
 
             try {
-                Client client = new OrchestrateClient("3e21631e-63cf-4b9e-b227-beabb7eab90a");
+                List<NameValuePair> nameValuePairs = new ArrayList<>(2);
+                nameValuePairs.add(new BasicNameValuePair("object", json));
+                httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
 
-                client.kv("Frees", key).put(y).on(new ResponseAdapter<KvMetadata>() {
-                    @Override
-                    public void onSuccess(KvMetadata object) {
-                        Log.e("myapp", "added to server." + key);
-                        super.onSuccess(object);
-                        DataHandler handler = new DataHandler(ctx);
-                        handler.open();
-                        String query = "SELECT * FROM atable WHERE username = '" + key + "'";
-                        Cursor data = handler.db.rawQuery(query, null);
-                        ContentValues content = new ContentValues();
-                        if (data.moveToFirst()) {
-                            content.put("uptodate", 2);
-                            handler.db.update("atable", content, "username='" + key + "'", null);
-                            Log.e("myapp", "added to database (2)");
-                        }
-                        handler.close();
-                    }
+                HttpResponse response = httpclient.execute(httppost);
+                int statusCode = response.getStatusLine().getStatusCode();
 
-                    @Override
-                    public void onFailure(Throwable error) {
-                        super.onFailure(error);
-                    }
-                });
+                assert statusCode == 200;
+
+
+                Log.e("myapp", "added to server." + key);
+                DataHandler handler = new DataHandler(ctx);
+                handler.open();
+                String query = "SELECT * FROM atable WHERE username = '" + key + "'";
+                Cursor data = handler.db.rawQuery(query, null);
+                ContentValues content = new ContentValues();
+                if (data.moveToFirst()) {
+                    content.put("uptodate", 2);
+                    handler.db.update("atable", content, "username='" + key + "'", null);
+                    Log.e("myapp", "added to database (2)");
+                }
+                handler.close();
+
+
             } catch (Throwable e) {
                 e.printStackTrace();
             }

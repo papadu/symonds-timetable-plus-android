@@ -30,7 +30,6 @@ public class DbContentProvider extends ContentProvider {
 
     @Override
     public String getType(Uri arg0) {
-        // TODO Auto-generated method stub
         return null;
     }
 

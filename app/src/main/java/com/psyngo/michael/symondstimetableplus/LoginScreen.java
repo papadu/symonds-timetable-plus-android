@@ -7,6 +7,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Typeface;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -335,13 +337,24 @@ class getFriendsList extends AsyncTask<Void, Void, Void> {
 
         HttpClient httpclient = new DefaultHttpClient();
 
+        ConnectivityManager cm = (ConnectivityManager) ctx.getSystemService(Context.CONNECTIVITY_SERVICE);
 
-
+        NetworkInfo ni = cm.getActiveNetworkInfo();
+        if (ni == null) {
+            // There are no active networks.
+            pinged = false;
+            return null;
+        } else {
+            pinged = true;
+        }
 
             try {
                 HttpGet request = new HttpGet("http://mooshoon.pythonanywhere.com/users/" + LoginScreen.username + "/friends/");
                 HttpResponse timetableResponse = httpclient.execute(request);
                 int responseCode = timetableResponse.getStatusLine().getStatusCode();
+
+                assert  responseCode == 200;
+
                 InputStream inputStream = timetableResponse.getEntity().getContent();
 
                 BufferedReader bufferedReader = new BufferedReader( new InputStreamReader(inputStream));
@@ -360,16 +373,8 @@ class getFriendsList extends AsyncTask<Void, Void, Void> {
                 OrchestrateResponseObject orchestrateResponse = gson.fromJson(result, OrchestrateResponseObject.class);
 
                 for (OrchestrateResult friend : orchestrateResponse.results){
-                    Log.e("myapp", friend.path.key);
-                    FriendDatabaseObject v = new FriendDatabaseObject();
-                    v.setName(friend.value.name);
-                    v.setDate(friend.value.date);
-
-                    v.setMonday(convertToFriendDatabaseObject(friend.value.monday));
-                    v.setTuesday(convertToFriendDatabaseObject(friend.value.tuesday));
-                    v.setWednesday(convertToFriendDatabaseObject(friend.value.wednesday));
-                    v.setThursday(convertToFriendDatabaseObject(friend.value.thursday));
-                    v.setFriday(convertToFriendDatabaseObject(friend.value.friday));
+                    FriendObjectConverter converter = new FriendObjectConverter();
+                    FriendDatabaseObject v = converter.convertToFriendDatabaseObject(friend.value);
 
                     AddAFriend_Activity.friends.add(new FriendList(friend.path.key, v));
                 }
@@ -382,32 +387,6 @@ class getFriendsList extends AsyncTask<Void, Void, Void> {
 
 
         return null;
-    }
-
-    public List<Calendar[]> convertToFriendDatabaseObject(ArrayList<Number[]> x){
-        List<Calendar[]> result = new ArrayList<>();
-        for(Number[] free : x) {
-            Calendar start = Calendar.getInstance();
-            Calendar end = Calendar.getInstance();
-            try {
-                start.setTime(new SimpleDateFormat("HH:mm").parse("00:00"));
-                end.setTime(new SimpleDateFormat("HH:mm").parse("00:00"));
-            } catch (ParseException e){
-                e.printStackTrace();
-            }
-            start.add(Calendar.HOUR, 1);
-            end.add(Calendar.HOUR, 1);
-            start.add(Calendar.MILLISECOND, free[0].intValue());
-            end.add(Calendar.MILLISECOND, free[1].intValue());
-                Log.d("start", new SimpleDateFormat("HH:mm dd MMMM yyyy").format(start.getTime()));
-                Log.d("end", new SimpleDateFormat("HH:mm dd MMMM yyyy").format(end.getTime()));
-
-            Calendar[] cals = new Calendar[2];
-            cals[0] = start;
-            cals[1] = end;
-            result.add(cals);
-        }
-        return result;
     }
 
     protected void onPostExecute(Void a) {

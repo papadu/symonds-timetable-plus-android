@@ -3,6 +3,8 @@ package com.psyngo.michael.symondstimetableplus;
 import android.app.SearchManager;
 import android.content.Context;
 import android.graphics.Typeface;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
@@ -28,6 +30,7 @@ import com.google.gson.GsonBuilder;
 
 import org.apache.commons.lang3.text.WordUtils;
 import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
@@ -37,6 +40,7 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -99,7 +103,7 @@ public class AddAFriend_Activity extends ActionBarActivity {
         addFriendList.setOnScrollListener(new InfiniteScrollListener(2) {
             @Override
             public void loadMore(int page, int totalItemsCount) {
-                if(!isSearchList) {
+                if (!isSearchList) {
                     Log.e("myapp", "executing !searchList");
                     getListOfNames l = new getListOfNames(addFriendList, ctx, pb, true, "");
                     l.execute();
@@ -172,6 +176,7 @@ class getListOfNames extends AsyncTask<Void, Void, ArrayList<FriendList>> {
     boolean success = false;
     boolean next = false;
     boolean nosearchresults = false;
+    int responseCode = 0;
     String query;
 
     public getListOfNames(ListView lv, Context ctx, ProgressBar pb, boolean next, String query) {
@@ -192,63 +197,38 @@ class getListOfNames extends AsyncTask<Void, Void, ArrayList<FriendList>> {
 
     protected ArrayList<FriendList> doInBackground(Void... params) {
 
+        ConnectivityManager cm = (ConnectivityManager) ctx.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        NetworkInfo ni = cm.getActiveNetworkInfo();
+        if (ni == null) {
+            // There are no active networks.
+            pinged = false;
+            return null;
+        } else {
+            pinged = true;
+        }
+
         HttpClient httpclient = new DefaultHttpClient();
 
         HttpGet request;
 
-        getFriendsList gfl = new getFriendsList(ctx, lv, "");
 
-/*
-        if (LoginScreen.offlinemode && pinged) {
+        if (LoginScreen.offlinemode) {
+            //TODO: Define this block somewhere else (Copied & pasted from getFriendsList, too lazy to do it properly).
             try {
+                HttpGet getrequest = new HttpGet("http://mooshoon.pythonanywhere.com/users/" + LoginScreen.username + "/friends/");
+                HttpResponse timetableResponse = httpclient.execute(getrequest);
+                responseCode = timetableResponse.getStatusLine().getStatusCode();
 
-                for (KvObject<FriendDatabaseObject> i : results) {
-                    boolean alreadyFriend = false;
-                    for (int x = 0; x < AddAFriend_Activity.friends.size(); x++) {
-                        if (AddAFriend_Activity.friends.get(x).getKey().equals(i.getKey())) {
-                            alreadyFriend = true;
-                        }
-                    }
-                    if (!alreadyFriend) {
-                        AddAFriend_Activity.friends.add(new FriendList(i.getKey(), i.getValue()));
-                    }
-                }
-                LoginScreen.offlinemode = false;
-            } catch (Throwable e) {
+                assert (responseCode == 200);
 
-            }
-        }
-        */
-
-
-            boolean isSearch;
-
-            try {
-                //if a list request
-                if (query.equals("")) {
-                    isSearch = false;
-                    //if it's not the first page
-                    if (next) {
-                        request = new HttpGet("http://mooshoon.pythonanywhere.com/users/?startkey=" + AddAFriend_Activity.NameList.get(AddAFriend_Activity.NameList.size() - 1).getKey());
-                    } else {
-                        request = new HttpGet("http://mooshoon.pythonanywhere.com/users/");
-                    }
-                //else it's a search request
-                } else {
-                    request = new HttpGet("http://mooshoon.pythonanywhere.com/users/?query=value.name:" + query + "*");
-                    AddAFriend_Activity.NameList = new ArrayList<FriendList>();
-                    isSearch = true;
-                }
-
-
-                HttpResponse timetableResponse = httpclient.execute(request);
-                int responseCode = timetableResponse.getStatusLine().getStatusCode();
                 InputStream inputStream = timetableResponse.getEntity().getContent();
 
-                BufferedReader bufferedReader = new BufferedReader( new InputStreamReader(inputStream));
+
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
                 String line = "";
                 String result = "";
-                while((line = bufferedReader.readLine()) != null)
+                while ((line = bufferedReader.readLine()) != null)
                     result += line;
 
                 inputStream.close();
@@ -260,31 +240,79 @@ class getListOfNames extends AsyncTask<Void, Void, ArrayList<FriendList>> {
 
                 OrchestrateResponseObject orchestrateResponse = gson.fromJson(result, OrchestrateResponseObject.class);
 
-                if(orchestrateResponse.count == 0 && isSearch){
-                    nosearchresults = true;
+                for (OrchestrateResult friend : orchestrateResponse.results) {
+                    FriendObjectConverter converter = new FriendObjectConverter();
+                    FriendDatabaseObject v = converter.convertToFriendDatabaseObject(friend.value);
+                    AddAFriend_Activity.friends.add(new FriendList(friend.path.key, v));
                 }
 
-
-                for (OrchestrateResult friend : orchestrateResponse.results){
-                    Log.e("myapp", friend.path.key);
-                    FriendDatabaseObject v = new FriendDatabaseObject();
-                    v.setName(friend.value.name);
-                    v.setDate(friend.value.date);
-
-                    v.setMonday(gfl.convertToFriendDatabaseObject(friend.value.monday));
-                    v.setTuesday(gfl.convertToFriendDatabaseObject(friend.value.tuesday));
-                    v.setWednesday(gfl.convertToFriendDatabaseObject(friend.value.wednesday));
-                    v.setThursday(gfl.convertToFriendDatabaseObject(friend.value.thursday));
-                    v.setFriday(gfl.convertToFriendDatabaseObject(friend.value.friday));
-
-                    AddAFriend_Activity.NameList.add(new FriendList(friend.path.key, v));
-                }
-                pinged = true;
+                LoginScreen.offlinemode = false;
                 success = true;
-            } catch (Throwable e) {
-                e.printStackTrace();
+            } catch (IOException e) {
+                Log.e("myapp", e.toString());
                 success = false;
+                return null;
             }
+
+
+        }
+
+
+        boolean isSearch;
+
+        try {
+            //if a list request
+            if (query.equals("")) {
+                isSearch = false;
+                //if it's not the first page
+                if (next) {
+                    request = new HttpGet("http://mooshoon.pythonanywhere.com/users/?startkey=" + AddAFriend_Activity.NameList.get(AddAFriend_Activity.NameList.size() - 1).getKey());
+                } else {
+                    request = new HttpGet("http://mooshoon.pythonanywhere.com/users/");
+                }
+                //else it's a search request
+            } else {
+                request = new HttpGet("http://mooshoon.pythonanywhere.com/users/?query=value.name:" + query + "*");
+                AddAFriend_Activity.NameList = new ArrayList<FriendList>();
+                isSearch = true;
+            }
+
+
+            HttpResponse timetableResponse = httpclient.execute(request);
+            responseCode = timetableResponse.getStatusLine().getStatusCode();
+
+            assert responseCode == 200;
+
+            InputStream inputStream = timetableResponse.getEntity().getContent();
+
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+            String line = "";
+            String result = "";
+            while ((line = bufferedReader.readLine()) != null)
+                result += line;
+
+            inputStream.close();
+
+            GsonBuilder builder = new GsonBuilder();
+            Gson gson = builder.create();
+
+            OrchestrateResponseObject orchestrateResponse = gson.fromJson(result, OrchestrateResponseObject.class);
+
+            if (orchestrateResponse.count == 0 && isSearch) {
+                nosearchresults = true;
+            }
+
+
+            for (OrchestrateResult friend : orchestrateResponse.results) {
+                FriendObjectConverter converter = new FriendObjectConverter();
+                FriendDatabaseObject v = converter.convertToFriendDatabaseObject(friend.value);
+                AddAFriend_Activity.NameList.add(new FriendList(friend.path.key, v));
+            }
+            success = true;
+        } catch (Throwable e) {
+            e.printStackTrace();
+            success = false;
+        }
 
 
         return null;
@@ -299,7 +327,7 @@ class getListOfNames extends AsyncTask<Void, Void, ArrayList<FriendList>> {
                     AddAFriend_Activity.addFriendList.setAdapter(AddAFriend_Activity.adapter);
                 }
 
-                if(nosearchresults){
+                if (nosearchresults) {
                     AddAFriend_Activity.noSearchTv.setText("Nope, no-one here by the name of \"" + query + "\"");
                     AddAFriend_Activity.noSearchTv.setVisibility(View.VISIBLE);
                 }
@@ -316,7 +344,7 @@ class getListOfNames extends AsyncTask<Void, Void, ArrayList<FriendList>> {
         } else {
             AddAFriend_Activity.errorView.setVisibility(View.VISIBLE);
             lv.setVisibility(View.GONE);
-            AddAFriend_Activity.errorTextView.setText("Can't reach server.");
+            AddAFriend_Activity.errorTextView.setText("No Internet Connection.");
         }
         pb.setVisibility(View.INVISIBLE);
     }
@@ -381,6 +409,8 @@ class addFriend extends AsyncTask<Void, Void, Void> {
     boolean pinged = true;
     boolean success = true;
 
+    int statusCode = 0;
+
     public addFriend(Context ctx, FriendList friend, View view) {
         this.view = view;
         this.ctx = ctx;
@@ -397,25 +427,39 @@ class addFriend extends AsyncTask<Void, Void, Void> {
     }
 
     protected Void doInBackground(Void... params) {
-        //TODO: Replace pings with internet checks
+
+        ConnectivityManager cm = (ConnectivityManager) ctx.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        NetworkInfo ni = cm.getActiveNetworkInfo();
+        if (ni == null) {
+            // There are no active networks.
+            pinged = false;
+            return null;
+        } else {
+            pinged = true;
+        }
+
         HttpClient httpclient = new DefaultHttpClient();
-        pinged = true;
         HttpPost httppost = new HttpPost("http://mooshoon.pythonanywhere.com/users/" + LoginScreen.username + "/friends/");
         List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
         nameValuePairs.add(new BasicNameValuePair("friendkey", friend.getKey()));
+        HttpResponse response = null;
 
         if (view.getTag().equals(0)) {
             try {
 
-                    nameValuePairs.add(new BasicNameValuePair("type", "add"));
-                    httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
-                HttpResponse response = httpclient.execute(httppost);
+                nameValuePairs.add(new BasicNameValuePair("type", "add"));
+                httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+                response = httpclient.execute(httppost);
+                statusCode = response.getStatusLine().getStatusCode();
 
-                    AddAFriend_Activity.friends.add(friend);
-                    view.setTag(1);
-                    i.setBackgroundDrawable(ctx.getResources().getDrawable(R.drawable.ic_action_done));
+                assert (statusCode == 200);
 
-                    success = true;
+                AddAFriend_Activity.friends.add(friend);
+                view.setTag(1);
+                i.setBackgroundDrawable(ctx.getResources().getDrawable(R.drawable.ic_action_done));
+
+                success = true;
 
             } catch (Throwable e) {
                 e.printStackTrace();
@@ -423,10 +467,15 @@ class addFriend extends AsyncTask<Void, Void, Void> {
             }
         } else {
             try {
-                    nameValuePairs.add(new BasicNameValuePair("type", "delete"));
-                    httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
-                HttpResponse response = httpclient.execute(httppost);
-                    success = true;
+                nameValuePairs.add(new BasicNameValuePair("type", "delete"));
+                httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+                response = httpclient.execute(httppost);
+
+                statusCode = response.getStatusLine().getStatusCode();
+
+                assert (statusCode == 200);
+
+                success = true;
             } catch (Throwable e) {
                 e.printStackTrace();
                 success = false;
@@ -448,7 +497,7 @@ class addFriend extends AsyncTask<Void, Void, Void> {
 
     protected void onPostExecute(Void a) {
         if (!pinged) {
-            Toast.makeText(ctx, "Cannot reach server", Toast.LENGTH_SHORT).show();
+            Toast.makeText(ctx, "No Internet Connection", Toast.LENGTH_SHORT).show();
         }
         if (success) {
             if (view.getTag().equals(0)) {
@@ -463,7 +512,7 @@ class addFriend extends AsyncTask<Void, Void, Void> {
                 }
             }
         } else {
-            Toast.makeText(ctx, "Operation timed out, try again.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(ctx, "Error " + statusCode, Toast.LENGTH_SHORT).show();
         }
         i.setVisibility(View.VISIBLE);
         p.setVisibility(View.INVISIBLE);
