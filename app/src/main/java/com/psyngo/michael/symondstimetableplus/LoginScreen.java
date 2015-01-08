@@ -372,13 +372,14 @@ class getFriendsList extends AsyncTask<Void, Void, Void> {
 
                 OrchestrateResponseObject orchestrateResponse = gson.fromJson(result, OrchestrateResponseObject.class);
 
-                for (OrchestrateResult friend : orchestrateResponse.results){
-                    FriendObjectConverter converter = new FriendObjectConverter();
-                    FriendDatabaseObject v = converter.convertToFriendDatabaseObject(friend.value);
+                if(orchestrateResponse!=null) {
+                    for (OrchestrateResult friend : orchestrateResponse.results) {
+                        FriendObjectConverter converter = new FriendObjectConverter();
+                        FriendDatabaseObject v = converter.convertToFriendDatabaseObject(friend.value);
 
-                    AddAFriend_Activity.friends.add(new FriendList(friend.path.key, v));
+                        AddAFriend_Activity.friends.add(new FriendList(friend.path.key, v));
+                    }
                 }
-
                 success = true;
             } catch (IOException e) {
                 Log.e("myapp", e.toString());
