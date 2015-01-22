@@ -372,7 +372,7 @@ class getFriendsList extends AsyncTask<Void, Void, Void> {
 
                     OrchestrateResponseObject orchestrateResponse = gson.fromJson(result, OrchestrateResponseObject.class);
 
-                    if (orchestrateResponse != null) {
+                    if (orchestrateResponse.results != null) {
                         for (OrchestrateResult friend : orchestrateResponse.results) {
                             FriendObjectConverter converter = new FriendObjectConverter();
                             FriendDatabaseObject v = converter.convertToFriendDatabaseObject(friend.value);
