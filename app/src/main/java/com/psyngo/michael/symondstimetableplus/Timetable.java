@@ -53,6 +53,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -875,7 +876,6 @@ public class Timetable extends ActionBarActivity {
         }
 
         protected Void doInBackground(Void... x) {
-            //TODO: Replace with python server code
 
             ConnectivityManager cm = (ConnectivityManager) ctx.getSystemService(Context.CONNECTIVITY_SERVICE);
 
@@ -904,7 +904,7 @@ public class Timetable extends ActionBarActivity {
                 HttpResponse response = httpclient.execute(httppost);
                 int statusCode = response.getStatusLine().getStatusCode();
 
-                assert statusCode == 200;
+                Log.d("responsefrompost", Integer.toString(statusCode));
 
 
                 Log.e("myapp", "added to server." + key);
@@ -921,7 +921,7 @@ public class Timetable extends ActionBarActivity {
                 handler.close();
 
 
-            } catch (Throwable e) {
+            } catch (IOException e) {
                 e.printStackTrace();
             }
 

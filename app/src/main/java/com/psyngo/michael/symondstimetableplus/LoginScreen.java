@@ -353,32 +353,36 @@ class getFriendsList extends AsyncTask<Void, Void, Void> {
                 HttpResponse timetableResponse = httpclient.execute(request);
                 int responseCode = timetableResponse.getStatusLine().getStatusCode();
 
-                assert  responseCode == 200;
+                if (responseCode == 200) {
 
-                InputStream inputStream = timetableResponse.getEntity().getContent();
+                    InputStream inputStream = timetableResponse.getEntity().getContent();
 
-                BufferedReader bufferedReader = new BufferedReader( new InputStreamReader(inputStream));
-                String line = "";
-                String result = "";
-                while((line = bufferedReader.readLine()) != null)
-                    result += line;
+                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+                    String line = "";
+                    String result = "";
+                    while ((line = bufferedReader.readLine()) != null)
+                        result += line;
 
-                inputStream.close();
+                    inputStream.close();
 
-                Log.e("Json", result);
+                    Log.e("Json", result);
 
-                GsonBuilder builder = new GsonBuilder();
-                Gson gson = builder.create();
+                    GsonBuilder builder = new GsonBuilder();
+                    Gson gson = builder.create();
 
-                OrchestrateResponseObject orchestrateResponse = gson.fromJson(result, OrchestrateResponseObject.class);
+                    OrchestrateResponseObject orchestrateResponse = gson.fromJson(result, OrchestrateResponseObject.class);
 
-                if(orchestrateResponse!=null) {
-                    for (OrchestrateResult friend : orchestrateResponse.results) {
-                        FriendObjectConverter converter = new FriendObjectConverter();
-                        FriendDatabaseObject v = converter.convertToFriendDatabaseObject(friend.value);
+                    if (orchestrateResponse != null) {
+                        for (OrchestrateResult friend : orchestrateResponse.results) {
+                            FriendObjectConverter converter = new FriendObjectConverter();
+                            FriendDatabaseObject v = converter.convertToFriendDatabaseObject(friend.value);
 
-                        AddAFriend_Activity.friends.add(new FriendList(friend.path.key, v));
+                            AddAFriend_Activity.friends.add(new FriendList(friend.path.key, v));
+                        }
                     }
+                }
+                else{
+                    Log.d("response", Integer.toString(responseCode));
                 }
                 success = true;
             } catch (IOException e) {
